@@ -55,7 +55,7 @@ class CalcParser(sly.Parser):
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):
-        pass
+        self.manager.store(p.IDENTIFIER)
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
@@ -114,11 +114,22 @@ class CalcParser(sly.Parser):
 
     @_('value')
     def expression(self, p):
-        pass
+        if is_int(p.value):
+            self.manager.set(p.value)
+        else:
+            self.manager.load(p.value)
 
     @_('value ADD value')
     def expression(self, p):
-        pass
+        vars = are_variables(p.value0, p.value1)
+        if vars == -1:
+            self.manager.set(p.value0 + p.value1)
+        elif vars == 0:
+            self.manager.addVarToVal(p.value0, p.value1)
+        elif vars == 1:
+            self.manager.addVarToVal(p.value1, p.value0)
+        else:
+            self.manager.addVarToVar(p.value0, p.value1)
 
     @_('value SUB value')
     def expression(self, p):
