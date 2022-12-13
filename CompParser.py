@@ -79,11 +79,14 @@ class CalcParser(sly.Parser):
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
-        pass
+        self.manager.read(p.IDENTIFIER)
 
     @_('WRITE value SEMICOLON')
     def command(self, p):
-        pass
+        if is_int(p.value):
+            self.manager.write_value(p.value)
+        else:
+            self.manager.write(p.value)
 
 
     @_('IDENTIFIER L_BRACKET declarations R_BRACKET')
@@ -102,11 +105,11 @@ class CalcParser(sly.Parser):
 
     @_('declarations COMMA IDENTIFIER')
     def declarations(self, p):
-        pass
+        self.manager.add_declaration(p.IDENTIFIER)
 
     @_('IDENTIFIER')
     def declarations(self, p):
-        pass
+        self.manager.add_declaration(p.IDENTIFIER)
 
 
     @_('value')
@@ -161,11 +164,11 @@ class CalcParser(sly.Parser):
     
     @_('NUM')
     def value(self, p):
-        pass
+        return p.NUM
 
     @_('IDENTIFIER')
     def value(self, p):
-        pass
+        return p.IDENTIFIER
 
 
     def error(self, token):

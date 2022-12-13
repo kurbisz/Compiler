@@ -18,11 +18,14 @@ def main():
     
     parser.parse(lexer.tokenize(text))
 
+    output_codes = parser.manager.get_output_codes()
+
     output_name = sys.argv[2]
     os.makedirs(os.path.dirname(output_name), exist_ok=True)
 
     with open(output_name, "w") as output_file:
-        output_file.write(text)
+        for code in output_codes:
+            output_file.write(code + "\n")
 
 
 if __name__ == "__main__":

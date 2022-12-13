@@ -1,0 +1,2 @@
+class VariableNotFoundException(Exception):
+    pass
