@@ -26,6 +26,7 @@ def main():
     with open(output_name, "w") as output_file:
         for code in output_codes:
             output_file.write(code + "\n")
+        output_file.write("HALT")
 
 
 if __name__ == "__main__":

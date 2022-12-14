@@ -133,7 +133,16 @@ class CalcParser(sly.Parser):
 
     @_('value SUB value')
     def expression(self, p):
-        pass
+        vars = are_variables(p.value0, p.value1)
+        if vars == -1:
+            self.manager.set(max(p.value0 - p.value1, 0))
+        elif vars == 0:
+            self.manager.subVarVal(p.value0, p.value1)
+        elif vars == 1:
+            self.manager.subValVar(p.value0, p.value1)
+        elif vars == 2:
+            self.manager.subVarVar(p.value0, p.value1)
+
 
     @_('value MUL value')
     def expression(self, p):
