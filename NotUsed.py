@@ -1,4 +1,4 @@
-def multiplyVarVal(self, var_name, val):
+def multiply_var_val(self, var_name, val):
     if val == 0:
         return self.set(0)
     res_cmds = self.set(0)

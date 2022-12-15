@@ -58,20 +58,20 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 + v2)
         elif vars == 0:
-            commands = self.addVarToVal(v1, v2)
+            commands = self.add_var_to_val(v1, v2)
         elif vars == 1:
-            commands = self.addVarToVal(v2, v1)
+            commands = self.add_var_to_val(v2, v1)
         else:
-            commands = self.addVarToVar(v1, v2)
+            commands = self.add_var_to_var(v1, v2)
         return commands
 
-    def addVarToVal(self, var_name, val):
+    def add_var_to_val(self, var_name, val):
         var = self.__get_variable(var_name)
         res = self.set(val)
         res.extend(self.__addVar(var))
         return res
 
-    def addVarToVar(self, var_name0, var_name1):
+    def add_var_to_var(self, var_name0, var_name1):
         var1 = self.__get_variable(var_name1)
         res = self.load(var_name0)
         res.extend(self.__addVar(var1))
@@ -89,14 +89,14 @@ class CompManager:
         if vars == -1:
             commands = self.set(max(v1 - v2, 0))
         elif vars == 0:
-            commands = self.subVarVal(v1, v2)
+            commands = self.sub_var_val(v1, v2)
         elif vars == 1:
-            commands = self.subValVar(v1, v2)
+            commands = self.sub_val_var(v1, v2)
         else:
-            commands = self.subVarVar(v1, v2)
+            commands = self.sub_var_var(v1, v2)
         return commands
     
-    def subVarVal(self, var_name, val):
+    def sub_var_val(self, var_name, val):
         res = self.set(val)
         mem_address, cmds = self.store_act()
         res.extend(cmds)
@@ -104,13 +104,13 @@ class CompManager:
         res.extend(self.__sub_address(mem_address))
         return res
 
-    def subValVar(self, val, var_name):
+    def sub_val_var(self, val, var_name):
         var = self.__get_variable(var_name)
         res = self.set(val)
         res.extend(self.__sub_address(var.memory_address))
         return res
     
-    def subVarVar(self, var_name0, var_name1):
+    def sub_var_var(self, var_name0, var_name1):
         var1 = self.__get_variable(var_name1)
         res = self.load(var_name0)
         res.extend(self.__sub_address(var1.memory_address))
@@ -125,14 +125,14 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 * v2)
         elif vars == 0:
-            commands = self.multiplyVarVal(v1, v2)
+            commands = self.multiply_var_val(v1, v2)
         elif vars == 1:
-            commands = self.multiplyVarVal(v2, v1)
+            commands = self.multiply_var_val(v2, v1)
         else:
-            commands = self.multiplyVarVar(v1, v2)
+            commands = self.multiply_var_var(v1, v2)
         return commands
     
-    def multiplyVarVal(self, var_name, val):
+    def multiply_var_val(self, var_name, val):
         if val == 0:
             return self.set(0)
         res_cmds = self.set(0)
@@ -166,7 +166,7 @@ class CompManager:
 
 
     
-    def multiplyVarVar(self, var_name0, var_name1):
+    def multiply_var_var(self, var_name0, var_name1):
         res_cmds = self.__init_static_var(1)
 
         set_cmds = self.set(0)
