@@ -173,19 +173,27 @@ class CalcParser(sly.Parser):
     # 0 means JZERO, 1 means JPOS
     @_('value EQ value')
     def condition(self, p):
-        pass
+        cmds = self.manager.substract(p.value0, p.value1)
+        cmds2 = self.manager.substract(p.value1, p.value0)
+        cmds.extend(self.manager.jump_pos(len(cmds2) + 1))
+        cmds.extend(cmds2)
+        return 1, cmds
 
     @_('value NE value')
     def condition(self, p):
-        pass
+        cmds = self.manager.substract(p.value0, p.value1)
+        cmds2 = self.manager.substract(p.value1, p.value0)
+        cmds.extend(self.manager.jump_pos(len(cmds2) + 1))
+        cmds.extend(cmds2)
+        return 0, cmds
 
     @_('value GT value')
     def condition(self, p):
-        pass
+        return 0, self.manager.substract(p.value0, p.value1)
 
     @_('value LT value')
     def condition(self, p):
-        pass
+        return 0, self.manager.substract(p.value1, p.value0)
 
     @_('value GE value')
     def condition(self, p):
@@ -193,7 +201,7 @@ class CalcParser(sly.Parser):
 
     @_('value LE value')
     def condition(self, p):
-        pass
+        return 1, self.manager.substract(p.value0, p.value1)
 
     
     @_('NUM')

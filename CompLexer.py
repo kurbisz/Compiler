@@ -19,7 +19,7 @@ class CalcLexer(sly.Lexer):
     MOD = r'\%'
 
     EQ = r"\="
-    NE = r"\\\="
+    NE = r"\!\="
     GE = r"\>\="
     LE = r"\<\="
     GT = r"\>"
