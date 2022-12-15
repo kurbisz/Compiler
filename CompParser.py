@@ -18,8 +18,13 @@ class CalcParser(sly.Parser):
 
     @_('procedures main')
     def program_all(self, p):
-        self.is_comm = True
-        return 0
+        commands = p.main
+        res: list[str] = []
+        index = 0
+        for command in commands:
+            res.append(command.get_value(index))
+            index += 1
+        return res
     
 
     @_('')
@@ -37,25 +42,29 @@ class CalcParser(sly.Parser):
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
     def main(self, p):
-        pass
+        return p.commands
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        pass
+        return p.commands
 
 
     @_('commands command')
     def commands(self, p):
-        pass
+        commands = p.commands
+        commands.extend(p.command)
+        return commands
 
     @_('command')
     def commands(self, p):
-        pass
+        return p.command
 
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):
-        self.manager.store(p.IDENTIFIER)
+        commands = p.expression
+        commands.extend(self.manager.store(p.IDENTIFIER))
+        return commands
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
@@ -79,14 +88,15 @@ class CalcParser(sly.Parser):
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
-        self.manager.read(p.IDENTIFIER)
+        return self.manager.read(p.IDENTIFIER)
 
     @_('WRITE value SEMICOLON')
     def command(self, p):
         if is_int(p.value):
-            self.manager.write_value(p.value)
+            commands = self.manager.write_value(p.value)
         else:
-            self.manager.write(p.value)
+            commands = self.manager.write(p.value)
+        return commands
 
 
     @_('IDENTIFIER L_BRACKET declarations R_BRACKET')
@@ -115,33 +125,36 @@ class CalcParser(sly.Parser):
     @_('value')
     def expression(self, p):
         if is_int(p.value):
-            self.manager.set(p.value)
+            commands = self.manager.set(p.value)
         else:
-            self.manager.load(p.value)
+            commands = self.manager.load(p.value)
+        return commands
 
     @_('value ADD value')
     def expression(self, p):
         vars = are_variables(p.value0, p.value1)
         if vars == -1:
-            self.manager.set(p.value0 + p.value1)
+            commands = self.manager.set(p.value0 + p.value1)
         elif vars == 0:
-            self.manager.addVarToVal(p.value0, p.value1)
+            commands = self.manager.addVarToVal(p.value0, p.value1)
         elif vars == 1:
-            self.manager.addVarToVal(p.value1, p.value0)
+            commands = self.manager.addVarToVal(p.value1, p.value0)
         else:
-            self.manager.addVarToVar(p.value0, p.value1)
+            commands = self.manager.addVarToVar(p.value0, p.value1)
+        return commands
 
     @_('value SUB value')
     def expression(self, p):
         vars = are_variables(p.value0, p.value1)
         if vars == -1:
-            self.manager.set(max(p.value0 - p.value1, 0))
+            commands = self.manager.set(max(p.value0 - p.value1, 0))
         elif vars == 0:
-            self.manager.subVarVal(p.value0, p.value1)
+            commands = self.manager.subVarVal(p.value0, p.value1)
         elif vars == 1:
-            self.manager.subValVar(p.value0, p.value1)
+            commands = self.manager.subValVar(p.value0, p.value1)
         elif vars == 2:
-            self.manager.subVarVar(p.value0, p.value1)
+            commands = self.manager.subVarVar(p.value0, p.value1)
+        return commands
 
 
     @_('value MUL value')

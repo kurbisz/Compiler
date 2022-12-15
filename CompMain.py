@@ -16,15 +16,13 @@ def main():
     with open(sys.argv[1], mode='r') as input_file:
         text = input_file.read()
     
-    parser.parse(lexer.tokenize(text))
-
-    output_codes = parser.manager.get_output_codes()
+    output_commands = parser.parse(lexer.tokenize(text))
 
     output_name = sys.argv[2]
     os.makedirs(os.path.dirname(output_name), exist_ok=True)
 
     with open(output_name, "w") as output_file:
-        for code in output_codes:
+        for code in output_commands:
             output_file.write(code + "\n")
         output_file.write("HALT")
 
