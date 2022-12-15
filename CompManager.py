@@ -96,6 +96,9 @@ class CompManager:
         return [Command(f"SUB {memory_adress}")]
 
 
+    def jump(self, add_index):
+        return [Command("JUMP", add_index)]
+
     def jump_zero(self, add_index):
         return [Command("JZERO", add_index)]
 

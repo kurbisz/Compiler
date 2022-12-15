@@ -2,12 +2,9 @@ Optymalizacja:
   - przechowywać jaka jest aktualnie zmienna w p0 i nie loadować jak nie trzeba
 
 TODO:
-  - if then
-  - if then else
   - while do
   - repeat until
   - mnozenie
   - dzielenie
   - mod
-  - porównywanie
   - PROCEDURY

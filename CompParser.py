@@ -68,7 +68,22 @@ class CalcParser(sly.Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
-        pass
+        cond_code, cond_commands = p.condition
+        commands = p.commands0
+        else_commands = p.commands1
+        res = cond_commands
+
+        commands.extend(self.manager.jump(len(else_commands) + 1))
+        
+        if cond_code == 0:
+            res.extend(self.manager.jump_zero(len(commands) + 1))
+        else:
+            res.extend(self.manager.jump_pos(len(commands) + 1))
+        
+        res.extend(commands)
+        res.extend(else_commands)
+
+        return res
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
@@ -77,9 +92,9 @@ class CalcParser(sly.Parser):
         res = cond_commands
         
         if cond_code == 0:
-            res.extend(self.manager.jump_zero(len(commands)+1))
+            res.extend(self.manager.jump_zero(len(commands) + 1))
         else:
-            res.extend(self.manager.jump_pos(len(commands)+1))
+            res.extend(self.manager.jump_pos(len(commands) + 1))
         
         res.extend(commands)
         return res
