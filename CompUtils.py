@@ -1,8 +1,8 @@
 class Variable:
 
-    def __init__(self, name, memory_adress) -> None:
+    def __init__(self, name, memory_address) -> None:
         self.name = name
-        self.memory_adress = memory_adress
+        self.memory_address = memory_address
 
 class Command:
     def __init__(self, cmd, add_index = None) -> None:

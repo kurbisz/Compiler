@@ -158,16 +158,7 @@ class CalcParser(sly.Parser):
 
     @_('value ADD value')
     def expression(self, p):
-        vars = are_variables(p.value0, p.value1)
-        if vars == -1:
-            commands = self.manager.set(p.value0 + p.value1)
-        elif vars == 0:
-            commands = self.manager.addVarToVal(p.value0, p.value1)
-        elif vars == 1:
-            commands = self.manager.addVarToVal(p.value1, p.value0)
-        else:
-            commands = self.manager.addVarToVar(p.value0, p.value1)
-        return commands
+        return self.manager.add(p.value0, p.value1)
 
     @_('value SUB value')
     def expression(self, p):
@@ -175,7 +166,7 @@ class CalcParser(sly.Parser):
 
     @_('value MUL value')
     def expression(self, p):
-        pass
+        return self.manager.multiply(p.value0, p.value1)
 
     @_('value DIV value')
     def expression(self, p):
