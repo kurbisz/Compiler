@@ -72,7 +72,18 @@ class CalcParser(sly.Parser):
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
-        pass
+        cond_code, cond_commands = p.condition
+        commands = p.commands
+        res = cond_commands
+        
+        if cond_code == 0:
+            res.extend(self.manager.jump_zero(len(commands)+1))
+        else:
+            res.extend(self.manager.jump_pos(len(commands)+1))
+        
+        res.extend(commands)
+        return res
+
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
@@ -145,17 +156,7 @@ class CalcParser(sly.Parser):
 
     @_('value SUB value')
     def expression(self, p):
-        vars = are_variables(p.value0, p.value1)
-        if vars == -1:
-            commands = self.manager.set(max(p.value0 - p.value1, 0))
-        elif vars == 0:
-            commands = self.manager.subVarVal(p.value0, p.value1)
-        elif vars == 1:
-            commands = self.manager.subValVar(p.value0, p.value1)
-        elif vars == 2:
-            commands = self.manager.subVarVar(p.value0, p.value1)
-        return commands
-
+        return self.manager.substract(p.value0, p.value1)
 
     @_('value MUL value')
     def expression(self, p):
@@ -169,7 +170,7 @@ class CalcParser(sly.Parser):
     def expression(self, p):
         pass
 
-
+    # 0 means JZERO, 1 means JPOS
     @_('value EQ value')
     def condition(self, p):
         pass
@@ -188,7 +189,7 @@ class CalcParser(sly.Parser):
 
     @_('value GE value')
     def condition(self, p):
-        pass
+        return 1, self.manager.substract(p.value1, p.value0)
 
     @_('value LE value')
     def condition(self, p):

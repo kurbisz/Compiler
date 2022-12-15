@@ -2,7 +2,7 @@ import sly
 
 
 class CalcLexer(sly.Lexer):
-    tokens = {NUM, IDENTIFIER, ADD, SUB, MUL, DIV, MOD, EQ, NE, GT, LT, GE, LE,
+    tokens = {NUM, IDENTIFIER, ADD, SUB, MUL, DIV, MOD, EQ, NE, GE, LE, GT, LT,
         PROCEDURE, PROGRAM, IS, VAR, BEGIN, END, L_BRACKET, R_BRACKET, ASSIGN, COMMA, SEMICOLON,
         IF, THEN, ELSE, ENDIF, WHILE, DO, ENDWHILE, REPEAT, UNTIL, READ, WRITE}
 
@@ -20,10 +20,10 @@ class CalcLexer(sly.Lexer):
 
     EQ = r"\="
     NE = r"\\\="
-    GT = r"\>"
-    LT = r"\<"
     GE = r"\>\="
     LE = r"\<\="
+    GT = r"\>"
+    LT = r"\<"
 
     L_BRACKET = r"\("
     R_BRACKET = r"\)"

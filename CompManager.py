@@ -60,6 +60,17 @@ class CompManager:
     def __addVar(self, var: Variable):
         return [Command(f"ADD {var.memory_adress}")]
 
+    def substract(self, v1, v2):
+        vars = are_variables(v1, v2)
+        if vars == -1:
+            commands = self.set(max(v1 - v2, 0))
+        elif vars == 0:
+            commands = self.subVarVal(v1, v2)
+        elif vars == 1:
+            commands = self.subValVar(v1, v2)
+        elif vars == 2:
+            commands = self.subVarVar(v1, v2)
+        return commands
     
     def subVarVal(self, var_name, val):
         res = self.set(val)
@@ -83,6 +94,13 @@ class CompManager:
 
     def __subVar(self, memory_adress):
         return [Command(f"SUB {memory_adress}")]
+
+
+    def jump_zero(self, add_index):
+        return [Command("JZERO", add_index)]
+
+    def jump_pos(self, add_index):
+        return [Command("JPOS", add_index)]
 
 
     def __get_variable(self, name):
