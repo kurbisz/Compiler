@@ -118,11 +118,35 @@ class CalcParser(sly.Parser):
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
-        pass
+        commands = p.commands
+        cond_code, cond_commands = p.condition
+
+        res_cmds = self.manager.jump(len(commands) + 1)
+        res_cmds.extend(commands)
+        res_cmds.extend(cond_commands)
+
+        if cond_code == 1:
+            res_cmds.extend(self.manager.jump_zero(-len(commands) - len(cond_commands)))
+        else:
+            res_cmds.extend(self.manager.jump_pos(-len(commands) - len(cond_commands)))
+
+        return res_cmds
+
 
     @_('REPEAT commands UNTIL condition SEMICOLON')
     def command(self, p):
-        pass
+        commands = p.commands
+        cond_code, cond_commands = p.condition
+
+        res_cmds = []
+        res_cmds.extend(commands)
+        res_cmds.extend(cond_commands)
+
+        if cond_code == 0:
+            res_cmds.extend(self.manager.jump_zero(-len(commands) - len(cond_commands)))
+        else:
+            res_cmds.extend(self.manager.jump_pos(-len(commands) - len(cond_commands)))
+        return res_cmds
 
     @_('proc_head SEMICOLON')
     def command(self, p):
