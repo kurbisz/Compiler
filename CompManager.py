@@ -326,6 +326,110 @@ class CompManager:
         return res_cmds
 
 
+    def modulo(self, v1, v2):
+        vars = are_variables(v1, v2)
+        if vars == -1:
+            commands = self.set(v1 % v2)
+        elif vars == 0:
+            commands = self.modulo_var_val(v1, v2)
+        elif vars == 1:
+            commands = self.modulo_val_var(v1, v2)
+        else:
+            commands = self.modulo_var_var(v1, v2)
+        return commands
+    
+    def modulo_var_val(self, var_name, val):
+        var = self.__get_variable(var_name)
+        res_cmds = self.__init_static_var(val)
+        res_cmds.extend(self.__modulo_var_var(var.memory_address, self.static_vars[val]))
+        return res_cmds
+    
+    def modulo_val_var(self, val, var_name):
+        var = self.__get_variable(var_name)
+        res_cmds = self.__init_static_var(val)
+        res_cmds.extend(self.__modulo_var_var(self.static_vars[val], var.memory_address))
+        return res_cmds
+    
+    def modulo_var_var(self, var_name0, var_name1):
+        var0 = self.__get_variable(var_name0)
+        var1 = self.__get_variable(var_name1)
+        return self.__modulo_var_var(var0.memory_address, var1.memory_address)
+
+    def __modulo_var_var(self, mem_address0, mem_address1):
+        # TODO check if value in mem_adress1 is 0 or 1 or 2
+        res_cmds = []
+
+        res_cmds.extend(self.set(0))
+        res_mem_address, cmds = self.store_act()
+        res_cmds.extend(cmds)
+
+        res_cmds.extend(self.load_address(mem_address0))
+        act_mem_address0, store_cmds0 = self.store_act()
+        res_cmds.extend(store_cmds0)
+
+        res_cmds.extend(self.load_address(mem_address1))
+        act_mem_address1, store_cmds1 = self.store_act()
+        res_cmds.extend(store_cmds1)
+
+        res_cmds.extend(self.set(1))
+        act_mem_address2, store_cmds2 = self.store_act()
+        res_cmds.extend(store_cmds2)
+
+        inc_cmds = []
+
+        inc_cmds.extend(self.load_address(act_mem_address2))
+        inc_cmds.extend(self.__add_address(act_mem_address2))
+        inc_cmds.extend(self.store_address(act_mem_address2))
+
+        inc_cmds.extend(self.load_address(act_mem_address1))
+        inc_cmds.extend(self.__add_address(act_mem_address1))
+        inc_cmds.extend(self.store_address(act_mem_address1))
+        inc_cmds.extend(self.__sub_address(act_mem_address0))
+
+        res_cmds.extend(inc_cmds)
+        res_cmds.extend(self.jump_zero(-len(inc_cmds)))
+
+        # res_cmds.extend(self.load_address(act_mem_address2))
+        # return res_cmds
+
+        div_cmds = []
+        div_cmds.extend(self.load_address(act_mem_address1))
+        div_cmds.extend(self.__sub_address(act_mem_address0))
+
+        div_cmds2 = []
+        div_cmds2.extend(self.load_address(act_mem_address0))
+        div_cmds2.extend(self.__sub_address(act_mem_address1))
+        div_cmds2.extend(self.store_address(act_mem_address0))
+
+        div_cmds2.extend(self.load_address(res_mem_address))
+        div_cmds2.extend(self.__add_address(act_mem_address2))
+        div_cmds2.extend(self.store_address(res_mem_address))
+
+        div_cmds.extend(self.jump_pos(len(div_cmds2) + 1))
+        div_cmds.extend(div_cmds2)
+
+        div_cmds3 = []
+        div_cmds3.extend(self.load_address(act_mem_address2))
+        div_cmds3.extend(self.half())
+        div_cmds3.extend(self.store_address(act_mem_address2))
+
+
+        div_cmds_cont = []
+        div_cmds_cont.extend(self.load_address(act_mem_address1))
+        div_cmds_cont.extend(self.half())
+        div_cmds_cont.extend(self.store_address(act_mem_address1))
+        # Change 1 to another value if jump_zero will not be in 1 line
+        div_cmds_cont.extend(self.jump(-len(div_cmds) - len(div_cmds3) - len(div_cmds_cont) - 1))
+
+        div_cmds3.extend(self.jump_zero(len(div_cmds_cont) + 1))
+
+        div_cmds.extend(div_cmds3)
+        div_cmds.extend(div_cmds_cont)
+
+        res_cmds.extend(div_cmds)
+        res_cmds.extend(self.load_address(act_mem_address0))
+
+        return res_cmds
 
     def jump(self, add_index):
         return [Command("JUMP", add_index)]

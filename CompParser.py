@@ -174,7 +174,7 @@ class CalcParser(sly.Parser):
 
     @_('value MOD value')
     def expression(self, p):
-        pass
+        return self.manager.modulo(p.value0, p.value1)
 
     # 0 means JZERO, 1 means JPOS
     @_('value EQ value')
