@@ -18,26 +18,42 @@ class CalcParser(sly.Parser):
 
     @_('procedures main')
     def program_all(self, p):
-        commands = p.main
+        _, cmds = p.procedures
+        if cmds:
+            new_cmds = self.manager.jump(len(cmds) + 1)
+            new_cmds.extend(cmds)
+            cmds = new_cmds
+        cmds.extend(p.main)
         res: list[str] = []
         index = 0
-        for command in commands:
+        for command in cmds:
             res.append(command.get_value(index))
             index += 1
         return res
     
 
+    
+    @_('procedures PROCEDURE proc_head_decl IS VAR declarations BEGIN commands END')
+    def procedures(self, p):
+        index, cmds = p.procedures
+        proc_name = p.proc_head_decl
+        cmds.extend(p.commands)
+        cmds.extend(self.manager.create_procedure(proc_name, index))
+        return index + len(cmds), cmds
+        
+    
+    @_('procedures PROCEDURE proc_head_decl IS BEGIN commands END')
+    def procedures(self, p):
+        index, cmds = p.procedures
+        proc_name = p.proc_head_decl
+        cmds.extend(p.commands)
+        cmds.extend(self.manager.create_procedure(proc_name, index))
+        return index + len(cmds), cmds
+
     @_('')
     def procedures(self, p):
-        pass
-    
-    @_('procedures PROCEDURE proc_head IS VAR proc_declarations BEGIN commands END')
-    def procedures(self, p):
-        pass
-    
-    @_('procedures PROCEDURE proc_head IS BEGIN commands END')
-    def procedures(self, p):
-        pass
+        # start index is 1 because we have to put jump at the beginning
+        return 1, []
 
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
@@ -110,7 +126,7 @@ class CalcParser(sly.Parser):
 
     @_('proc_head SEMICOLON')
     def command(self, p):
-        pass
+        return p.proc_head
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
@@ -125,18 +141,33 @@ class CalcParser(sly.Parser):
         return commands
 
 
-    @_('IDENTIFIER L_BRACKET declarations R_BRACKET')
+    @_('IDENTIFIER L_BRACKET call_declarations R_BRACKET')
     def proc_head(self, p):
-        pass
+        return self.manager.call_procedure(p.IDENTIFIER, p.call_declarations)
+
+
+    @_('IDENTIFIER L_BRACKET proc_declarations R_BRACKET')
+    def proc_head_decl(self, p):
+        return p.IDENTIFIER
 
 
     @_('proc_declarations COMMA IDENTIFIER')
     def proc_declarations(self, p):
-        pass
+        self.manager.add_declaration(p.IDENTIFIER, True)
 
     @_('IDENTIFIER')
     def proc_declarations(self, p):
-        pass
+        self.manager.add_declaration(p.IDENTIFIER, True)
+
+
+    @_('call_declarations COMMA IDENTIFIER')
+    def call_declarations(self, p):
+        p.call_declarations.append(p.IDENTIFIER)
+        return p.call_declarations
+
+    @_('IDENTIFIER')
+    def call_declarations(self, p):
+        return [p.IDENTIFIER]
 
 
     @_('declarations COMMA IDENTIFIER')

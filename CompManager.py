@@ -8,15 +8,20 @@ class CompManager:
         self.act_val_memory_address = 1
         self.variables = []
         self.static_vars = {}
+        self.procedures = []
 
-    def add_declaration(self, name):
-        new_var = Variable(name, self.act_val_memory_address)
+    def add_declaration(self, name, is_reference = False):
+        new_var = Variable(name, self.act_val_memory_address, is_reference)
         self.variables.append(new_var)
         self.act_val_memory_address += 1
     
 
     def read(self, name):
-        var = self.__get_variable(name)
+        var : Variable = self.__get_variable(name)
+        if var.is_reference:
+            cmds = [Command(f"GET 0")]
+            cmds.extend(self.store_i_address(var.memory_address))
+            return cmds
         return [Command(f"GET {var.memory_address}")]
 
     def write_value(self, val):
@@ -25,7 +30,11 @@ class CompManager:
         return res
 
     def write(self, name):
-        var = self.__get_variable(name)
+        var : Variable = self.__get_variable(name)
+        if var.is_reference:
+            cmds = self.load_i_address(var.memory_address)
+            cmds.append(Command("PUT 0"))
+            return cmds
         return [Command(f"PUT {var.memory_address}")]
 
 
@@ -34,7 +43,13 @@ class CompManager:
 
     def load(self, name):
         var = self.__get_variable(name)
+        if var.is_reference:
+            return [Command(f"LOADI {var.memory_address}")]
         return [Command(f"LOAD {var.memory_address}")]
+
+
+    def load_i_address(self, address):
+        return [Command(f"LOADI {address}")]
 
     def load_address(self, address):
         return [Command(f"LOAD {address}")]
@@ -50,7 +65,35 @@ class CompManager:
 
     def store_address(self, address):
         return [Command(f"STORE {address}")]
+
+    def store_i_address(self, address):
+        return [Command(f"STOREI {address}")]
     
+
+    def create_procedure(self, proc_name, start_index):
+        act = self.act_val_memory_address
+        self.act_val_memory_address += 1
+        proc = Procedure(proc_name, self.variables.copy(), start_index, act)
+        self.procedures.append(proc)
+        self.variables.clear()
+        return self.jump_i_address(act)
+
+    def call_procedure(self, proc_name, declarations):
+        cmds = []
+        proc : Procedure = self.__get_procedure(proc_name)
+        i = 0
+        for variable in proc.arguments:
+            if variable.is_reference:
+                dec = self.__get_variable(declarations[i])
+                cmds.extend(self.set(dec.memory_address))
+                cmds.extend(self.store_address(variable.memory_address))
+                i += 1
+        call_cmds = []
+        call_cmds.extend(self.store_address(proc.return_memory_adress))
+        call_cmds.extend(self.jump_address(proc.start_index))
+        cmds.append(Command("SET", len(call_cmds) + 1))
+        cmds.extend(call_cmds)
+        return cmds
 
 
     def add(self, v1, v2):
@@ -68,17 +111,26 @@ class CompManager:
     def add_var_to_val(self, var_name, val):
         var = self.__get_variable(var_name)
         res = self.set(val)
-        res.extend(self.__addVar(var))
+        if var.is_reference:
+            res.extend(self.__add_i_var(var))
+        else:
+            res.extend(self.__add_var(var))
         return res
 
     def add_var_to_var(self, var_name0, var_name1):
         var1 = self.__get_variable(var_name1)
         res = self.load(var_name0)
-        res.extend(self.__addVar(var1))
+        if var1.is_reference:
+            res.extend(self.__add_i_var(var1))
+        else:
+            res.extend(self.__add_var(var1))
         return res
     
-    def __addVar(self, var: Variable):
+    def __add_var(self, var: Variable):
         return [Command(f"ADD {var.memory_address}")]
+    
+    def __add_i_var(self, var: Variable):
+        return [Command(f"ADDI {var.memory_address}")]
 
     def __add_address(self, address):
         return [Command(f"ADD {address}")]
@@ -107,14 +159,19 @@ class CompManager:
     def sub_val_var(self, val, var_name):
         var = self.__get_variable(var_name)
         res = self.set(val)
-        res.extend(self.__sub_address(var.memory_address))
+        res.extend(self.__sub(var))
         return res
     
     def sub_var_var(self, var_name0, var_name1):
         var1 = self.__get_variable(var_name1)
         res = self.load(var_name0)
-        res.extend(self.__sub_address(var1.memory_address))
+        res.extend(self.__sub(var1))
         return res
+
+    def __sub(self, var: Variable):
+        if var.is_reference:
+            return [Command(f"SUBI {var.memory_address}")]
+        return [Command(f"SUB {var.memory_address}")]
 
     def __sub_address(self, memory_address):
         return [Command(f"SUB {memory_address}")]
@@ -235,39 +292,51 @@ class CompManager:
     def divide_var_val(self, var_name, val):
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
-        res_cmds.extend(self.__divide_var_var(var.memory_address, self.static_vars[val]))
+        res_cmds.extend(self.__divide_var_var(var.memory_address, self.static_vars[val], var.is_reference, False))
         return res_cmds
     
     def divide_val_var(self, val, var_name):
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
-        res_cmds.extend(self.__divide_var_var(self.static_vars[val], var.memory_address))
+        res_cmds.extend(self.__divide_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
         return res_cmds
     
     def divide_var_var(self, var_name0, var_name1):
         var0 = self.__get_variable(var_name0)
         var1 = self.__get_variable(var_name1)
-        return self.__divide_var_var(var0.memory_address, var1.memory_address)
+        return self.__divide_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
-    def __divide_var_var(self, mem_address0, mem_address1):
+    def __divide_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
         # TODO check if value in mem_adress1 is 0 or 1 or 2
-        res_cmds = []
+        init_cmds1 = self.__init_static_var(1)
 
-        res_cmds.extend(self.set(0))
+        init_cmds1.extend(self.set(0))
         res_mem_address, cmds = self.store_act()
-        res_cmds.extend(cmds)
+        init_cmds1.extend(cmds)
 
-        res_cmds.extend(self.load_address(mem_address0))
-        act_mem_address0, store_cmds0 = self.store_act()
-        res_cmds.extend(store_cmds0)
+        if is_ref1:
+            init_cmds1.extend(self.load_i_address(mem_address1))
+        else:
+            init_cmds1.extend(self.load_address(mem_address1))
 
-        res_cmds.extend(self.load_address(mem_address1))
+        init_cmds0 = []
+
         act_mem_address1, store_cmds1 = self.store_act()
-        res_cmds.extend(store_cmds1)
+        init_cmds0.extend(store_cmds1)
 
-        res_cmds.extend(self.set(1))
+        if is_ref0:
+            init_cmds0.extend(self.load_i_address(mem_address0))
+        else:
+            init_cmds0.extend(self.load_address(mem_address0))
+
+        tmp_res_cmds = []
+
+        act_mem_address0, store_cmds0 = self.store_act()
+        tmp_res_cmds.extend(store_cmds0)
+
+        tmp_res_cmds.extend(self.set(1))
         act_mem_address2, store_cmds2 = self.store_act()
-        res_cmds.extend(store_cmds2)
+        tmp_res_cmds.extend(store_cmds2)
 
         inc_cmds = []
 
@@ -280,11 +349,8 @@ class CompManager:
         inc_cmds.extend(self.store_address(act_mem_address1))
         inc_cmds.extend(self.__sub_address(act_mem_address0))
 
-        res_cmds.extend(inc_cmds)
-        res_cmds.extend(self.jump_zero(-len(inc_cmds)))
-
-        # res_cmds.extend(self.load_address(act_mem_address2))
-        # return res_cmds
+        tmp_res_cmds.extend(inc_cmds)
+        tmp_res_cmds.extend(self.jump_zero(-len(inc_cmds)))
 
         div_cmds = []
         div_cmds.extend(self.load_address(act_mem_address1))
@@ -320,8 +386,24 @@ class CompManager:
         div_cmds.extend(div_cmds3)
         div_cmds.extend(div_cmds_cont)
 
-        res_cmds.extend(div_cmds)
-        res_cmds.extend(self.load_address(res_mem_address))
+        tmp_res_cmds.extend(div_cmds)
+        tmp_res_cmds.extend(self.load_address(res_mem_address))
+
+        # check if values of var0 and var1 are 0, 1, 2 (if yes then jump to the end)
+        res_cmds = []
+
+        res_cmds.extend(init_cmds1)
+        # add 1 this jump, add 1 load, 
+        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
+
+        if is_ref1:
+            res_cmds.extend(self.load_i_address(mem_address1))
+        else:
+            res_cmds.extend(self.load_address(mem_address1))
+
+        res_cmds.extend(init_cmds0)
+        res_cmds.extend(tmp_res_cmds)
+
 
         return res_cmds
 
@@ -341,39 +423,51 @@ class CompManager:
     def modulo_var_val(self, var_name, val):
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
-        res_cmds.extend(self.__modulo_var_var(var.memory_address, self.static_vars[val]))
+        res_cmds.extend(self.__modulo_var_var(var.memory_address, self.static_vars[val], var.is_reference, False))
         return res_cmds
     
     def modulo_val_var(self, val, var_name):
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
-        res_cmds.extend(self.__modulo_var_var(self.static_vars[val], var.memory_address))
+        res_cmds.extend(self.__modulo_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
         return res_cmds
     
     def modulo_var_var(self, var_name0, var_name1):
         var0 = self.__get_variable(var_name0)
         var1 = self.__get_variable(var_name1)
-        return self.__modulo_var_var(var0.memory_address, var1.memory_address)
+        return self.__modulo_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
-    def __modulo_var_var(self, mem_address0, mem_address1):
+    def __modulo_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
         # TODO check if value in mem_adress1 is 0 or 1 or 2
-        res_cmds = []
+        init_cmds1 = self.__init_static_var(1)
 
-        res_cmds.extend(self.set(0))
+        init_cmds1.extend(self.set(0))
         res_mem_address, cmds = self.store_act()
-        res_cmds.extend(cmds)
+        init_cmds1.extend(cmds)
 
-        res_cmds.extend(self.load_address(mem_address0))
-        act_mem_address0, store_cmds0 = self.store_act()
-        res_cmds.extend(store_cmds0)
+        if is_ref1:
+            init_cmds1.extend(self.load_i_address(mem_address1))
+        else:
+            init_cmds1.extend(self.load_address(mem_address1))
 
-        res_cmds.extend(self.load_address(mem_address1))
+        init_cmds0 = []
+
         act_mem_address1, store_cmds1 = self.store_act()
-        res_cmds.extend(store_cmds1)
+        init_cmds0.extend(store_cmds1)
 
-        res_cmds.extend(self.set(1))
+        if is_ref0:
+            init_cmds0.extend(self.load_i_address(mem_address0))
+        else:
+            init_cmds0.extend(self.load_address(mem_address0))
+
+        tmp_res_cmds = []
+
+        act_mem_address0, store_cmds0 = self.store_act()
+        tmp_res_cmds.extend(store_cmds0)
+
+        tmp_res_cmds.extend(self.set(1))
         act_mem_address2, store_cmds2 = self.store_act()
-        res_cmds.extend(store_cmds2)
+        tmp_res_cmds.extend(store_cmds2)
 
         inc_cmds = []
 
@@ -386,11 +480,8 @@ class CompManager:
         inc_cmds.extend(self.store_address(act_mem_address1))
         inc_cmds.extend(self.__sub_address(act_mem_address0))
 
-        res_cmds.extend(inc_cmds)
-        res_cmds.extend(self.jump_zero(-len(inc_cmds)))
-
-        # res_cmds.extend(self.load_address(act_mem_address2))
-        # return res_cmds
+        tmp_res_cmds.extend(inc_cmds)
+        tmp_res_cmds.extend(self.jump_zero(-len(inc_cmds)))
 
         div_cmds = []
         div_cmds.extend(self.load_address(act_mem_address1))
@@ -426,19 +517,39 @@ class CompManager:
         div_cmds.extend(div_cmds3)
         div_cmds.extend(div_cmds_cont)
 
-        res_cmds.extend(div_cmds)
-        res_cmds.extend(self.load_address(act_mem_address0))
+        tmp_res_cmds.extend(div_cmds)
+        tmp_res_cmds.extend(self.load_address(act_mem_address0))
+
+        res_cmds = []
+
+        res_cmds.extend(init_cmds1)
+        # add 1 this jump, add 1 load, 
+        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
+
+        if is_ref1:
+            res_cmds.extend(self.load_i_address(mem_address1))
+        else:
+            res_cmds.extend(self.load_address(mem_address1))
+
+        res_cmds.extend(init_cmds0)
+        res_cmds.extend(tmp_res_cmds)
 
         return res_cmds
 
     def jump(self, add_index):
         return [Command("JUMP", add_index)]
 
+    def jump_address(self, address):
+        return [Command(f"JUMP {address}")]
+
     def jump_zero(self, add_index):
         return [Command("JZERO", add_index)]
 
     def jump_pos(self, add_index):
         return [Command("JPOS", add_index)]
+
+    def jump_i_address(self, address):
+        return [Command(f"JUMPI {address}")]
 
 
     def __init_static_var(self, val):
@@ -455,3 +566,10 @@ class CompManager:
             if var.name == name:
                 return var
         raise VariableNotFoundException(f"Variable with name {name} was not defined.")
+
+    def __get_procedure(self, name):
+        for proc in self.procedures:
+            if proc.name == name:
+                return proc
+        raise VariableNotFoundException(f"Procedure with name {name} was not defined.")
+

@@ -1,8 +1,16 @@
 class Variable:
 
-    def __init__(self, name, memory_address) -> None:
+    def __init__(self, name, memory_address, is_reference = False) -> None:
         self.name = name
         self.memory_address = memory_address
+        self.is_reference = is_reference
+
+class Procedure:
+    def __init__(self, name, arguments: list[Variable], start_index: int, return_memory_adress: int) -> None:
+        self.name = name
+        self.arguments = arguments
+        self.start_index = start_index
+        self.return_memory_adress = return_memory_adress
 
 class Command:
     def __init__(self, cmd, add_index = None) -> None:
