@@ -170,7 +170,7 @@ class CalcParser(sly.Parser):
 
     @_('value DIV value')
     def expression(self, p):
-        pass
+        return self.manager.divide(p.value0, p.value1)
 
     @_('value MOD value')
     def expression(self, p):
