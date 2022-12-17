@@ -231,21 +231,15 @@ class CalcParser(sly.Parser):
     def expression(self, p):
         return self.manager.modulo(p.value0, p.value1)
 
-    # 0 means JZERO, 1 means JPOS
+    # 0 means JZERO, 1 means JPOS (in IF statements)
     @_('value EQ value')
     def condition(self, p):
-        cmds = self.manager.substract(p.value0, p.value1)
-        cmds2 = self.manager.substract(p.value1, p.value0)
-        cmds.extend(self.manager.jump_pos(len(cmds2) + 1))
-        cmds.extend(cmds2)
+        cmds = self.manager.equal(p.value0, p.value1)
         return 1, cmds
 
     @_('value NE value')
     def condition(self, p):
-        cmds = self.manager.substract(p.value0, p.value1)
-        cmds2 = self.manager.substract(p.value1, p.value0)
-        cmds.extend(self.manager.jump_pos(len(cmds2) + 1))
-        cmds.extend(cmds2)
+        cmds = self.manager.equal(p.value0, p.value1)
         return 0, cmds
 
     @_('value GT value')

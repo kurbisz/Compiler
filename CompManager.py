@@ -56,6 +56,8 @@ class CompManager:
     
     def store(self, name):
         var = self.__get_variable(name)
+        if var.is_reference:
+            return [Command(f"STOREI {var.memory_address}")]
         return [Command(f"STORE {var.memory_address}")]
 
     def store_act(self) -> int:
@@ -149,6 +151,8 @@ class CompManager:
         return commands
     
     def sub_var_val(self, var_name, val):
+        if val == 0:
+            return self.load(var_name)
         res = self.set(val)
         mem_address, cmds = self.store_act()
         res.extend(cmds)
@@ -157,12 +161,16 @@ class CompManager:
         return res
 
     def sub_val_var(self, val, var_name):
+        if val == 0:
+            return self.set(0)
         var = self.__get_variable(var_name)
         res = self.set(val)
         res.extend(self.__sub(var))
         return res
     
     def sub_var_var(self, var_name0, var_name1):
+        if var_name0 == var_name1:
+            return self.set(0)
         var1 = self.__get_variable(var_name1)
         res = self.load(var_name0)
         res.extend(self.__sub(var1))
@@ -192,6 +200,12 @@ class CompManager:
     def multiply_var_val(self, var_name, val):
         if val == 0:
             return self.set(0)
+        is_power, power = isPowerOfTwo(val)
+        if is_power:
+            res_cmds = self.load(var_name)
+            for i in range(power):
+                res_cmds.extend(self.__add_address(0))
+            return res_cmds
         res_cmds = self.set(0)
         res_mem_address, cmds = self.store_act()
         load_cmds = self.load(var_name)
@@ -290,12 +304,22 @@ class CompManager:
         return commands
     
     def divide_var_val(self, var_name, val):
+        if val == 0:
+            return self.set(0)
+        is_power, power = isPowerOfTwo(val)
+        if is_power:
+            res_cmds = self.load(var_name)
+            for i in range(power):
+                res_cmds.extend(self.half())
+            return res_cmds
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__divide_var_var(var.memory_address, self.static_vars[val], var.is_reference, False))
         return res_cmds
     
     def divide_val_var(self, val, var_name):
+        if val == 0:
+            return self.set(0)
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__divide_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
@@ -421,12 +445,25 @@ class CompManager:
         return commands
     
     def modulo_var_val(self, var_name, val):
+        if val == 0 or val == 1:
+            return self.set(0)
+        if val == 2:
+            res_cmds = self.__init_static_var(1)
+            res_cmds.extend(self.load(var_name))
+            res_cmds.extend(self.__add_address(self.static_vars[1]))
+            res_cmds.extend(self.half())
+            res_cmds.extend(self.__add_address(0))
+            var = self.__get_variable(var_name)
+            res_cmds.extend(self.__sub(var))
+            return res_cmds
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__modulo_var_var(var.memory_address, self.static_vars[val], var.is_reference, False))
         return res_cmds
     
     def modulo_val_var(self, val, var_name):
+        if val == 0:
+            return self.set(0)
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__modulo_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
@@ -550,6 +587,23 @@ class CompManager:
 
     def jump_i_address(self, address):
         return [Command(f"JUMPI {address}")]
+
+
+    def equal(self, v0, v1):
+        vars = are_variables(v0, v1)
+        if vars == -1:
+            if v0 == v1:
+                return self.set(0)
+            return self.set(1)
+        if vars == 0 and v1 == 0:
+            return self.load(v0)
+        if vars == 1 and v0 == 0:
+            return self.load(v1)
+        cmds = self.substract(v0, v1)
+        cmds2 = self.substract(v1, v0)
+        cmds.extend(self.jump_pos(len(cmds2) + 1))
+        cmds.extend(cmds2)
+        return cmds
 
 
     def __init_static_var(self, val):

@@ -34,3 +34,12 @@ def are_variables(val0, val1):
     if is_int(val0) and not is_int(val1):
         return 1
     return 2
+
+def isPowerOfTwo(n):
+    i = 0
+    while (n != 1):
+        if (n % 2 != 0):
+            return False, 0
+        n = n // 2
+        i += 1
+    return True, i
