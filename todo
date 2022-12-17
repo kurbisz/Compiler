@@ -7,4 +7,4 @@ Optymalizacja:
   - sprawdzenie czy procedura jest uzywana
   - przerzucenie mnozenia dzielenia i mod do procedury
   - dorzucić precomp, który:
-    - sprawdza czy warunek zaszedl, jak tak to nie pisze kodu bez sensu
+    - sprawdza czy warunek zaszedl, jak tak to nie pisze kodu bez sensu [DONE]

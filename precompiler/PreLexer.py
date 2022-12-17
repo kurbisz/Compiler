@@ -1,7 +1,7 @@
 import sly
 
 
-class CompLexer(sly.Lexer):
+class PreLexer(sly.Lexer):
     tokens = {NUM, IDENTIFIER, ADD, SUB, MUL, DIV, MOD, EQ, NE, GE, LE, GT, LT,
         PROCEDURE, PROGRAM, IS, VAR, BEGIN, END, L_BRACKET, R_BRACKET, ASSIGN, COMMA, SEMICOLON,
         IF, THEN, ELSE, ENDIF, WHILE, DO, ENDWHILE, REPEAT, UNTIL, READ, WRITE}

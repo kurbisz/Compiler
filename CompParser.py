@@ -2,14 +2,14 @@ import sly
 from sly.lex import *
 from sly.yacc import *
 
-from CompLexer import CalcLexer
+from CompLexer import CompLexer
 from CompManager import CompManager
 from CompUtils import *
 
 
-class CalcParser(sly.Parser):
+class CompParser(sly.Parser):
 
-    tokens = CalcLexer.tokens
+    tokens = CompLexer.tokens
     
     def __init__(self) -> None:
         super().__init__()

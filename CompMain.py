@@ -1,13 +1,18 @@
 import os
 import sys
 
-from CompLexer import CalcLexer
-from CompParser import CalcParser
+from CompLexer import CompLexer
+from CompParser import CompParser
+from precompiler.PreLexer import PreLexer
+from precompiler.PreParser import PreParser
 
-lexer = CalcLexer()
-parser = CalcParser()
+pre_lexer = PreLexer()
+pre_parser = PreParser()
 
-def main():
+lexer = CompLexer()
+parser = CompParser()
+
+def main(debug = False):
     args = len(sys.argv)
     if args != 3:
         print("Invalid arguments! Correct usage: python CompMain.py INPUT_FILE OUTPUT_FILE")
@@ -16,6 +21,12 @@ def main():
     with open(sys.argv[1], mode='r') as input_file:
         text = input_file.read()
     
+
+    text = pre_parser.parse(pre_lexer.tokenize(text))
+
+    if debug:
+        print(text)
+
     output_commands = parser.parse(lexer.tokenize(text))
 
     output_name = sys.argv[2]
@@ -28,4 +39,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(debug=True)
