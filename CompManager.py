@@ -589,22 +589,23 @@ class CompManager:
         return [Command(f"JUMPI {address}")]
 
 
-    def equal(self, v0, v1):
+    def equal(self, v0, v1, ret_val):
         vars = are_variables(v0, v1)
-        if vars == -1:
-            if v0 == v1:
-                return self.set(0)
-            return self.set(1)
         if vars == 0 and v1 == 0:
-            return self.load(v0)
+            return ret_val, self.load(v0)
         if vars == 1 and v0 == 0:
-            return self.load(v1)
+            return ret_val, self.load(v1)
         cmds = self.substract(v0, v1)
         cmds2 = self.substract(v1, v0)
         cmds.extend(self.jump_pos(len(cmds2) + 1))
         cmds.extend(cmds2)
-        return cmds
+        return ret_val, cmds
 
+    def greater_than(self, v0, v1, ret_val):
+        vars = are_variables(v0, v1)
+        if vars == 1 and v0 == 1:
+            return self.equal(v1, 0, 1-ret_val)
+        return ret_val, self.substract(v0, v1)
 
     def __init_static_var(self, val):
         if val in self.static_vars:

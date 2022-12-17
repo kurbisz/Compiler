@@ -234,29 +234,27 @@ class CalcParser(sly.Parser):
     # 0 means JZERO, 1 means JPOS (in IF statements)
     @_('value EQ value')
     def condition(self, p):
-        cmds = self.manager.equal(p.value0, p.value1)
-        return 1, cmds
+        return self.manager.equal(p.value0, p.value1, 1)
 
     @_('value NE value')
     def condition(self, p):
-        cmds = self.manager.equal(p.value0, p.value1)
-        return 0, cmds
+        return self.manager.equal(p.value0, p.value1, 0)
 
     @_('value GT value')
     def condition(self, p):
-        return 0, self.manager.substract(p.value0, p.value1)
+        return self.manager.greater_than(p.value0, p.value1, 0)
 
     @_('value LT value')
     def condition(self, p):
-        return 0, self.manager.substract(p.value1, p.value0)
+        return self.manager.greater_than(p.value1, p.value0, 0)
 
     @_('value GE value')
     def condition(self, p):
-        return 1, self.manager.substract(p.value1, p.value0)
+        return self.manager.greater_than(p.value1, p.value0, 1)
 
     @_('value LE value')
     def condition(self, p):
-        return 1, self.manager.substract(p.value0, p.value1)
+        return self.manager.greater_than(p.value0, p.value1, 1)
 
     
     @_('NUM')
