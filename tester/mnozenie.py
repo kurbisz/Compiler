@@ -27,4 +27,11 @@ if __name__ == "__main__":
             if res != act_res:
                 print("BLAD DLA i=" + str(i) + " j=" + str(j))
             sum_cost += cost
+    lis = [(2, 1000000), (0, 1000000), (10000000, 0), (1000000, 10000000), (20, 200000), (5000, 5000)]
+    for i, j in lis:
+        res, cost = calc_res(i, j)
+        act_res = i * j
+        if res != act_res:
+            print("BLAD DLA i=" + str(i) + " j=" + str(j))
+        sum_cost += cost
     print("cost: " + str(sum_cost))
