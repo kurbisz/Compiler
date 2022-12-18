@@ -3,6 +3,7 @@ import sys
 
 from CompLexer import CompLexer
 from CompParser import CompParser
+from OptimizationUtils import optimize_input
 from precompiler.PreLexer import PreLexer
 from precompiler.PreParser import PreParser
 
@@ -23,11 +24,13 @@ def main(debug = False):
     
 
     text = pre_parser.parse(pre_lexer.tokenize(text))
-
+    text = optimize_input(text)
+    
     if debug:
         print(text)
 
-    output_commands = parser.parse(lexer.tokenize(text))
+    output_commands : list[str] = parser.parse(lexer.tokenize(text))
+
 
     output_name = sys.argv[2]
     os.makedirs(os.path.dirname(output_name), exist_ok=True)

@@ -30,7 +30,7 @@ class PreParser(sly.Parser):
         ret_str += " IS"
         ret_str += "\nVAR " 
         ret_str += p.declarations 
-        ret_str += "\nBEGIN " 
+        ret_str += "\nBEGIN\n" 
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
@@ -42,7 +42,7 @@ class PreParser(sly.Parser):
         ret_str = p.procedures
         ret_str += "PROCEDURE " 
         ret_str += p.proc_head_decl 
-        ret_str += " IS\nBEGIN "
+        ret_str += " IS\nBEGIN\n"
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
@@ -58,17 +58,17 @@ class PreParser(sly.Parser):
         ret_str = "PROGRAM IS"
         ret_str += "\nVAR "
         ret_str += p.declarations
-        ret_str += "\nBEGIN \n"
+        ret_str += "\nBEGIN\n"
         ret_str += p.commands
-        ret_str += "\nEND\n"
+        ret_str += "\nEND"
         return ret_str
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
         ret_str = "PROGRAM IS"
-        ret_str += "\nBEGIN \n"
+        ret_str += "\nBEGIN\n"
         ret_str += p.commands
-        ret_str += "\nEND\n"
+        ret_str += "\nEND"
         return ret_str
 
 

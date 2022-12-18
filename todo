@@ -1,10 +1,9 @@
 Optymalizacja:
-  - przechowywać jaka jest aktualnie zmienna w p0 i nie loadować jak nie trzeba
-  - mnozenie, dzielenie, mod
-  - wyrzucic niepotrzebne zmiennie (te do których się tylko coś przypisuje)
-  - zapisac mnozenie, dzielenie i mod w oddzielnej procedurze z 2 argumentami (krótszy kod)
-  - dla 0/1/2 mnozenie, dzielenie i mod
-  - sprawdzenie czy procedura jest uzywana
-  - przerzucenie mnozenia dzielenia i mod do procedury
-  - dorzucić precomp, który:
-    - sprawdza czy warunek zaszedl, jak tak to nie pisze kodu bez sensu [DONE]
+  - nie robić operacji jezeli wynik juz jest w p0
+  - ulepszyć mnozenie, dzielenie, mod i dodać warunku dla 0/1/2
+  - sprawdzenie czy procedura jest uzywana + przerzucenie procedury do kodu jezeli jest tylko raz uzyta
+  - przerzucenie mnozenia dzielenia i mod do procedury jeżeli wystąpiły > 1 raz (w precompilerze)
+
+Do spytania:
+  - czy musi byc zaimplementowane p_p_i (przekazanie wskaznika do kolejnej procedury)
+  - jak zoptymalizowac przyklad z listy
