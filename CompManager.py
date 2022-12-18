@@ -382,6 +382,9 @@ class CompManager:
         mul_cmds.extend(self.jump(-len(mul_cmds)))
         self.__clear_p0()
         
+        # skip multiplication if b was equal to 0
+        res_cmds.extend(self.jump_zero(len(mul_cmds)+1))
+
         res_cmds.extend(mul_cmds)
         res_cmds.extend(self.load_address(res_mem_address))
 
