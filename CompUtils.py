@@ -5,6 +5,9 @@ class Variable:
         self.memory_address = memory_address
         self.is_reference = is_reference
 
+    def __str__(self) -> str:
+        return r"VAR\{" + self.name + r"\}"
+
 class Procedure:
     def __init__(self, name, arguments: list[Variable], start_index: int, return_memory_adress: int) -> None:
         self.name = name
@@ -21,7 +24,31 @@ class Command:
         if self.add_index is not None:
             return f"{self.cmd} {act_index + self.add_index}"
         return self.cmd
-        
+
+class Address:
+    def __init__(self, address: int) -> None:
+        self.address = address
+    def __eq__(self, __o: object) -> bool:
+        return self.address == __o.address
+class IAddress:
+    def __init__(self, address: int) -> None:
+        self.address = address
+    def __eq__(self, __o: object) -> bool:
+        return self.address == __o.address
+
+class Value:
+    def __init__(self, val: int) -> None:
+        self.val = val
+    def __eq__(self, __o: object) -> bool:
+        return self.val == __o.val
+class Operation:
+    def __init__(self, operation: str) -> None:
+        self.operation = operation
+    def contains(self, var: Variable):
+        return str(var) in self.operation
+    def __eq__(self, __o: object) -> bool:
+        return self.operation == __o.operation
+
 
 def is_int(var):
     return type(var) == int
