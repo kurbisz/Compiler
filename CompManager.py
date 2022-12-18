@@ -125,20 +125,26 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 + v2)
         elif vars == 0:
-            operation = Operation(str(v1) + "+" + str(v2))
+            operation = Operation(str(v1) + " + " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.add_var_to_val(v1, v2)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "+" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " + " + str(v1))])
         elif vars == 1:
-            operation = Operation(str(v1) + "+" + str(v2))
+            operation = Operation(str(v1) + " + " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.add_var_to_val(v2, v1)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "+" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " + " + str(v1))])
         else:
-            operation = Operation(str(v1) + "+" + str(v2))
+            operation = Operation(str(v1) + " + " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.add_var_to_var(v1, v2)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "+" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " + " + str(v1))])
         return commands
 
     def add_var_to_val(self, var_name, val):
@@ -177,17 +183,23 @@ class CompManager:
         if vars == -1:
             commands = self.set(max(v1 - v2, 0))
         elif vars == 0:
-            operation = Operation(str(v1) + "-" + str(v2))
+            operation = Operation(str(v1) + " - " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.sub_var_val(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
-            operation = Operation(str(v1) + "-" + str(v2))
+            operation = Operation(str(v1) + " - " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.sub_val_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         else:
-            operation = Operation(str(v1) + "-" + str(v2))
+            operation = Operation(str(v1) + " - " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.sub_var_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
@@ -233,20 +245,26 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 * v2)
         elif vars == 0:
-            operation = Operation(str(v1) + "*" + str(v2))
+            operation = Operation(str(v1) + " * " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.multiply_var_val(v1, v2)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "*" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " * " + str(v1))])
         elif vars == 1:
-            operation = Operation(str(v1) + "*" + str(v2))
+            operation = Operation(str(v1) + " * " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.multiply_var_val(v2, v1)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "*" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " * " + str(v1))])
         else:
-            operation = Operation(str(v1) + "*" + str(v2))
+            operation = Operation(str(v1) + " * " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.multiply_var_var(v1, v2)
             self.__clear_p0()
-            self.p0.extend([operation, Operation(str(v2) + "*" + str(v1))])
+            self.p0.extend([operation, Operation(str(v2) + " * " + str(v1))])
         return commands
     
     def multiply_var_val(self, var_name, val):
@@ -356,17 +374,23 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 // v2)
         elif vars == 0:
-            operation = Operation(str(v1) + "/" + str(v2))
+            operation = Operation(str(v1) + " / " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.divide_var_val(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
-            operation = Operation(str(v1) + "/" + str(v2))
+            operation = Operation(str(v1) + " / " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.divide_val_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         else:
-            operation = Operation(str(v1) + "/" + str(v2))
+            operation = Operation(str(v1) + " / " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.divide_var_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
@@ -515,17 +539,23 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 % v2)
         elif vars == 0:
-            operation = Operation(str(v1) + "%" + str(v2))
+            operation = Operation(str(v1) + " % " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.modulo_var_val(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
-            operation = Operation(str(v1) + "%" + str(v2))
+            operation = Operation(str(v1) + " % " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.modulo_val_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)
         else:
-            operation = Operation(str(v1) + "%" + str(v2))
+            operation = Operation(str(v1) + " % " + str(v2))
+            if CompManager.optimization and self.__is_in_p0(operation):
+                return []
             commands = self.modulo_var_var(v1, v2)
             self.__clear_p0()
             self.p0.append(operation)

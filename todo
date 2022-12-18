@@ -1,5 +1,4 @@
 Optymalizacja:
-  - nie robić operacji jezeli wynik juz jest w p0
   - ulepszyć mnozenie, dzielenie, mod i dodać warunku dla 0/1/2
   - sprawdzenie czy procedura jest uzywana + przerzucenie procedury do kodu jezeli jest tylko raz uzyta
   - przerzucenie mnozenia dzielenia i mod do procedury jeżeli wystąpiły > 1 raz (w precompilerze)
@@ -7,3 +6,4 @@ Optymalizacja:
 Do spytania:
   - czy musi byc zaimplementowane p_p_i (przekazanie wskaznika do kolejnej procedury)
   - jak zoptymalizowac przyklad z listy
+  - czy można zrobić sprawdzarkę w pythonie?!
