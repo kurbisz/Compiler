@@ -311,7 +311,6 @@ class CompManager:
 
     
     def multiply_var_var(self, var_name0, var_name1):
-        # TODO check if var_name1 is 0 or 1 or 2
         res_cmds = self.__init_static_var(1)
 
         res_cmds.extend(self.set(0))
@@ -454,6 +453,11 @@ class CompManager:
     def divide_val_var(self, val, var_name):
         if val == 0:
             return self.set(0)
+        if val == 1:
+            res_cmds = self.sub_val_var(2, var_name)
+            res_cmds.extend(self.jump_zero(2))
+            res_cmds.extend(self.load(var_name))
+            return res_cmds
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__divide_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
@@ -555,11 +559,13 @@ class CompManager:
         tmp_res_cmds.extend(self.load_address(res_mem_address))
         self.__clear_p0()
 
-        # check if values of var0 and var1 are 0, 1, 2 (if yes then jump to the end)
-        res_cmds = []
+        # check if a == 0
+        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) + 1))
 
+        res_cmds = []
         res_cmds.extend(init_cmds1)
-        # add 1 this jump, add 1 load, 
+
+        # check if b == 0
         res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
 
         if is_ref1:
@@ -723,10 +729,13 @@ class CompManager:
         tmp_res_cmds.extend(self.load_address(act_mem_address0))
         self.__clear_p0()
 
-        res_cmds = []
+        # check if a == 0
+        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) + 1))
 
+        res_cmds = []
         res_cmds.extend(init_cmds1)
-        # add 1 this jump, add 1 load, 
+
+        # check if b == 0
         res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
 
         if is_ref1:
