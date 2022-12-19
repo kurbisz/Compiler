@@ -469,7 +469,6 @@ class CompManager:
         return self.__divide_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
     def __divide_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
-        # TODO check if value in mem_adress1 is 0 or 1 or 2
         init_cmds1 = self.__init_static_var(1)
 
         init_cmds1.extend(self.set(0))
@@ -628,6 +627,13 @@ class CompManager:
     def modulo_val_var(self, val, var_name):
         if val == 0:
             return self.set(0)
+        if val == 1:
+            res_cmds = self.__init_static_var(1)
+            res_cmds.extend(self.load(var_name))
+            res_cmds.extend(self.__sub_address(self.static_vars[1]))
+            res_cmds.extend(self.jump_zero(2))
+            res_cmds.extend(self.set(1))
+            return res_cmds
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
         res_cmds.extend(self.__modulo_var_var(self.static_vars[val], var.memory_address, False, var.is_reference))
@@ -639,7 +645,6 @@ class CompManager:
         return self.__modulo_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
     def __modulo_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
-        # TODO check if value in mem_adress1 is 0 or 1 or 2
         init_cmds1 = self.__init_static_var(1)
 
         init_cmds1.extend(self.set(0))
