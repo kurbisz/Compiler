@@ -11,6 +11,7 @@ class CompManager:
         self.variables = []
         self.static_vars = {}
         self.procedures = []
+        self.clear_div_results()
         self.__clear_p0()
 
     def add_declaration(self, name, is_reference = False):
@@ -469,6 +470,12 @@ class CompManager:
         return self.__divide_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
     def __divide_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
+        oper = str(mem_address0) + " / " + str(mem_address1)
+        for el, key in self.div_results.items():
+            if key.contains(oper):
+                print("TEST DIV")
+                return self.load_address(el)
+
         init_cmds1 = self.__init_static_var(1)
 
         init_cmds1.extend(self.set(0))
@@ -555,17 +562,27 @@ class CompManager:
         div_cmds.extend(div_cmds_cont)
 
         tmp_res_cmds.extend(div_cmds)
+
+
+        store_mod_if_zeros = self.set(0)
+        store_mod_if_zeros.extend(self.store_address(act_mem_address0))
+        store_mod_if_zeros.extend(self.jump(3))
+
+        tmp_res_cmds.extend(self.jump(len(store_mod_if_zeros) + 1))
+        tmp_res_cmds.extend(store_mod_if_zeros)
+
+        
         tmp_res_cmds.extend(self.load_address(res_mem_address))
         self.__clear_p0()
 
         # check if a == 0
-        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) + 1))
+        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) - len(store_mod_if_zeros)))
 
         res_cmds = []
         res_cmds.extend(init_cmds1)
 
         # check if b == 0
-        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
+        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0)  - len(store_mod_if_zeros)))
 
         if is_ref1:
             res_cmds.extend(self.load_i_address(mem_address1))
@@ -576,6 +593,8 @@ class CompManager:
         res_cmds.extend(init_cmds0)
         res_cmds.extend(tmp_res_cmds)
 
+        self.div_results[res_mem_address] = Operation(str(mem_address0) + " / " + str(mem_address1))
+        self.div_results[act_mem_address0] = Operation(str(mem_address0) + " % " + str(mem_address1))
 
         return res_cmds
 
@@ -645,6 +664,12 @@ class CompManager:
         return self.__modulo_var_var(var0.memory_address, var1.memory_address, var0.is_reference, var1.is_reference)
 
     def __modulo_var_var(self, mem_address0, mem_address1, is_ref0 = False, is_ref1 = False):
+        oper = str(mem_address0) + " % " + str(mem_address1)
+        for el, key in self.div_results.items():
+            if key.contains(oper):
+                print("TEST MOD")
+                return self.load_address(el)
+        
         init_cmds1 = self.__init_static_var(1)
 
         init_cmds1.extend(self.set(0))
@@ -731,17 +756,27 @@ class CompManager:
         div_cmds.extend(div_cmds_cont)
 
         tmp_res_cmds.extend(div_cmds)
+
+
+        store_mod_if_zeros = self.set(0)
+        store_mod_if_zeros.extend(self.store_address(act_mem_address0))
+        store_mod_if_zeros.extend(self.jump(3))
+
+        tmp_res_cmds.extend(self.jump(len(store_mod_if_zeros) + 1))
+        tmp_res_cmds.extend(store_mod_if_zeros)
+
+        
         tmp_res_cmds.extend(self.load_address(act_mem_address0))
         self.__clear_p0()
 
         # check if a == 0
-        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) + 1))
+        init_cmds0.extend(self.jump_zero(len(tmp_res_cmds) - len(store_mod_if_zeros)))
 
         res_cmds = []
         res_cmds.extend(init_cmds1)
 
         # check if b == 0
-        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0) + 1 + 1))
+        res_cmds.extend(self.jump_zero(len(tmp_res_cmds) + len(init_cmds0)  - len(store_mod_if_zeros)))
 
         if is_ref1:
             res_cmds.extend(self.load_i_address(mem_address1))
@@ -751,6 +786,9 @@ class CompManager:
 
         res_cmds.extend(init_cmds0)
         res_cmds.extend(tmp_res_cmds)
+
+        self.div_results[res_mem_address] = Operation(str(mem_address0) + " / " + str(mem_address1))
+        self.div_results[act_mem_address0] = Operation(str(mem_address0) + " % " + str(mem_address1))
 
         return res_cmds
 
@@ -797,9 +835,16 @@ class CompManager:
         cmds.extend(store_cmds)
         return cmds
 
+    def clear_cache(self):
+        self.__clear_p0()
+        self.clear_div_results()
+
     def __clear_p0(self):
         self.p0 = []
     
+    def clear_div_results(self):
+        self.div_results = {}
+
     def __var_changed(self, var):
         if type(var) == str:
             var = self.__get_variable(var)
@@ -810,7 +855,15 @@ class CompManager:
                     continue
             new_p0.append(el)
         self.p0 = new_p0
-    
+
+        new_div_results = {}
+        for el, key in self.div_results.items():
+            if type(key) == Operation:
+                if key.contains(str(var.memory_address)):
+                    continue
+            new_div_results[el] = key
+        self.div_results = new_div_results
+
     def __is_in_p0(self, val):
         for el in self.p0:
             if type(el) == type(val) and el == val:

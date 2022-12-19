@@ -44,8 +44,12 @@ class Value:
 class Operation:
     def __init__(self, operation: str) -> None:
         self.operation = " " + operation + " "
+
     def contains(self, var: Variable):
-        return (" " + var.name + " ") in self.operation
+        if type(var) == Variable:
+            return (" " + var.name + " ") in self.operation
+        return (" " + var + " ") in self.operation
+
     def __eq__(self, __o: object) -> bool:
         return self.operation == __o.operation
 

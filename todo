@@ -1,5 +1,4 @@
 Optymalizacja:
-  - zapamiętywać wyniki mod dla dzielenia i dzielenia dla mod (otrzymuje sie to przy okazji)
   - sprawdzenie czy procedura jest uzywana + przerzucenie procedury do kodu jezeli jest tylko raz uzyta
   - przerzucenie mnozenia dzielenia i mod do procedury jeżeli wystąpiły > 1 raz (w precompilerze)
 

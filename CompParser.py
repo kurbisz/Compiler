@@ -10,7 +10,7 @@ from CompUtils import *
 class CompParser(sly.Parser):
 
     tokens = CompLexer.tokens
-    
+
     def __init__(self) -> None:
         super().__init__()
         self.manager = CompManager()
@@ -74,6 +74,11 @@ class CompParser(sly.Parser):
     @_('command')
     def commands(self, p):
         return p.command
+
+    @_('CLEAR')
+    def command(self, p):
+        self.manager.clear_cache()
+        return []
 
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
@@ -234,6 +239,7 @@ class CompParser(sly.Parser):
     # 0 means JZERO, 1 means JPOS (in IF statements)
     @_('value EQ value')
     def condition(self, p):
+        print("TEST0")
         return self.manager.equal(p.value0, p.value1, 1)
 
     @_('value NE value')

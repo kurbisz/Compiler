@@ -31,6 +31,7 @@ class PreParser(sly.Parser):
         ret_str += "\nVAR " 
         ret_str += p.declarations 
         ret_str += "\nBEGIN\n" 
+        ret_str += "!!!\n"
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
@@ -43,6 +44,7 @@ class PreParser(sly.Parser):
         ret_str += "PROCEDURE " 
         ret_str += p.proc_head_decl 
         ret_str += " IS\nBEGIN\n"
+        ret_str += "!!!\n"
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
@@ -59,6 +61,7 @@ class PreParser(sly.Parser):
         ret_str += "\nVAR "
         ret_str += p.declarations
         ret_str += "\nBEGIN\n"
+        ret_str += "!!!\n"
         ret_str += p.commands
         ret_str += "\nEND"
         return ret_str
@@ -96,6 +99,7 @@ class PreParser(sly.Parser):
             else:
                 return p.commands1
         ret_str = "IF " + p.condition + " THEN\n"
+        ret_str += "!!!\n"
         ret_str += p.commands0
         ret_str += "\nELSE\n"
         ret_str += p.commands1
@@ -110,6 +114,7 @@ class PreParser(sly.Parser):
             else:
                 return ""
         ret_str = "IF " + p.condition + " THEN\n"
+        ret_str += "!!!\n"
         ret_str += p.commands
         ret_str += "\nENDIF"
         return ret_str
@@ -121,6 +126,7 @@ class PreParser(sly.Parser):
             if not p.condition:
                 return ""
         ret_str = "WHILE " + p.condition + " DO\n"
+        ret_str += "!!!\n"
         ret_str += p.commands
         ret_str += "\nENDWHILE"
         return ret_str
@@ -132,6 +138,7 @@ class PreParser(sly.Parser):
             if p.condition:
                 return p.commands
         ret_str = "REPEAT\n"
+        ret_str += "!!!\n"
         ret_str += p.commands
         ret_str += "\nUNTIL " + p.condition + " ;"
         return ret_str
