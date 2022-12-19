@@ -318,37 +318,46 @@ class CompManager:
         res_mem_address, cmds = self.store_act()
         res_cmds.extend(cmds)
         
-        res_cmds.extend(self.substract(var_name0, var_name1))
-        self.__clear_p0()
+        if var_name0 != var_name1:
+            res_cmds.extend(self.substract(var_name0, var_name1))
+            self.__clear_p0()
 
-        swap_cmds = []
-        # this is by default multiplied by 2
-        swap_cmds.extend(self.load(var_name0))
-        act_mem_address0, store_cmds0 = self.store_act()
-        swap_cmds.extend(store_cmds0)
+            swap_cmds = []
+            # this is by default multiplied by 2
+            swap_cmds.extend(self.load(var_name0))
+            act_mem_address0, store_cmds0 = self.store_act()
+            swap_cmds.extend(store_cmds0)
 
-        # this is by default divided by 2
-        swap_cmds.extend(self.load(var_name1))
-        act_mem_address1, store_cmds1 = self.store_act()
-        swap_cmds.extend(store_cmds1)
+            # this is by default divided by 2
+            swap_cmds.extend(self.load(var_name1))
+            act_mem_address1, store_cmds1 = self.store_act()
+            swap_cmds.extend(store_cmds1)
 
 
-        swap_cmds.extend(self.jump(5)) # skip this jump, load + store, load + store
-        self.__clear_p0()
+            swap_cmds.extend(self.jump(5)) # skip this jump, load + store, load + store
+            self.__clear_p0()
 
-        res_cmds.extend(self.jump_zero(len(swap_cmds) + 1))
-        res_cmds.extend(swap_cmds)
+            res_cmds.extend(self.jump_zero(len(swap_cmds) + 1))
+            res_cmds.extend(swap_cmds)
 
-        # change var0 with var1 (because it will be faster to divide smaller number)
-        self.act_val_memory_address -= 2
-        res_cmds.extend(self.load(var_name1))
-        act_mem_address0, store_cmds0 = self.store_act()
-        res_cmds.extend(store_cmds0)
-        self.__clear_p0()
+            # change var0 with var1 (because it will be faster to divide smaller number)
+            self.act_val_memory_address -= 2
+            res_cmds.extend(self.load(var_name1))
+            act_mem_address0, store_cmds0 = self.store_act()
+            res_cmds.extend(store_cmds0)
+            self.__clear_p0()
 
-        res_cmds.extend(self.load(var_name0))
-        act_mem_address1, store_cmds1 = self.store_act()
-        res_cmds.extend(store_cmds1)
+            res_cmds.extend(self.load(var_name0))
+            act_mem_address1, store_cmds1 = self.store_act()
+            res_cmds.extend(store_cmds1)
+
+        else:
+            res_cmds.extend(self.load(var_name0))
+            act_mem_address0, store_cmds0 = self.store_act()
+            res_cmds.extend(store_cmds0)
+            res_cmds.extend(self.load(var_name1))
+            act_mem_address1, store_cmds1 = self.store_act()
+            res_cmds.extend(store_cmds1)
 
         # take b, add 1, divide by 2, multiply by 2 and subtract b,
         # check if res is 0, if yes then b % 2 == 0, else b % 2 == 1 
