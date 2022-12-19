@@ -319,28 +319,32 @@ class CompManager:
         res_cmds.extend(cmds)
         
         res_cmds.extend(self.substract(var_name0, var_name1))
-        res_cmds.extend(self.jump_zero(6)) # 6 from: skip this jump, load + store, load + store, skip jump
         self.__clear_p0()
 
+        swap_cmds = []
         # this is by default multiplied by 2
-        res_cmds.extend(self.load(var_name0))
+        swap_cmds.extend(self.load(var_name0))
         act_mem_address0, store_cmds0 = self.store_act()
-        res_cmds.extend(store_cmds0)
+        swap_cmds.extend(store_cmds0)
 
         # this is by default divided by 2
-        res_cmds.extend(self.load(var_name1))
+        swap_cmds.extend(self.load(var_name1))
         act_mem_address1, store_cmds1 = self.store_act()
-        res_cmds.extend(store_cmds1)
+        swap_cmds.extend(store_cmds1)
 
-        res_cmds.extend(self.jump(5)) # skip this jump, load + store, load + store
+
+        swap_cmds.extend(self.jump(5)) # skip this jump, load + store, load + store
         self.__clear_p0()
 
+        res_cmds.extend(self.jump_zero(len(swap_cmds) + 1))
+        res_cmds.extend(swap_cmds)
 
         # change var0 with var1 (because it will be faster to divide smaller number)
         self.act_val_memory_address -= 2
         res_cmds.extend(self.load(var_name1))
         act_mem_address0, store_cmds0 = self.store_act()
         res_cmds.extend(store_cmds0)
+        self.__clear_p0()
 
         res_cmds.extend(self.load(var_name0))
         act_mem_address1, store_cmds1 = self.store_act()
