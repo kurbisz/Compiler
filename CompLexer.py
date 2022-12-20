@@ -8,7 +8,7 @@ class CompLexer(sly.Lexer):
 
     ignore = ' \t\n'
 
-    ignore_comment = r'\[.*\]'
+    ignore_comment = r'\[(.|\n)*\]'
 
     IDENTIFIER = r'[_a-z]+'
 

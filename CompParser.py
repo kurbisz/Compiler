@@ -239,7 +239,6 @@ class CompParser(sly.Parser):
     # 0 means JZERO, 1 means JPOS (in IF statements)
     @_('value EQ value')
     def condition(self, p):
-        print("TEST0")
         return self.manager.equal(p.value0, p.value1, 1)
 
     @_('value NE value')

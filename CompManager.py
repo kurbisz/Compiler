@@ -11,7 +11,7 @@ class CompManager:
         self.variables = []
         self.static_vars = {}
         self.procedures = []
-        self.clear_div_results()
+        self.__clear_div_results()
         self.__clear_p0()
 
     def add_declaration(self, name, is_reference = False):
@@ -473,7 +473,6 @@ class CompManager:
         oper = str(mem_address0) + " / " + str(mem_address1)
         for el, key in self.div_results.items():
             if key.contains(oper):
-                print("TEST DIV")
                 return self.load_address(el)
 
         init_cmds1 = self.__init_static_var(1)
@@ -667,7 +666,6 @@ class CompManager:
         oper = str(mem_address0) + " % " + str(mem_address1)
         for el, key in self.div_results.items():
             if key.contains(oper):
-                print("TEST MOD")
                 return self.load_address(el)
         
         init_cmds1 = self.__init_static_var(1)
@@ -837,12 +835,12 @@ class CompManager:
 
     def clear_cache(self):
         self.__clear_p0()
-        self.clear_div_results()
+        self.__clear_div_results()
 
     def __clear_p0(self):
         self.p0 = []
     
-    def clear_div_results(self):
+    def __clear_div_results(self):
         self.div_results = {}
 
     def __var_changed(self, var):
