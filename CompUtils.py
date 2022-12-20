@@ -4,6 +4,10 @@ class Variable:
         self.name = name
         self.memory_address = memory_address
         self.is_reference = is_reference
+        self.defined = False
+    
+    def set_defined(self, defined: bool):
+        self.defined = defined
 
     def __str__(self) -> str:
         return r"VAR\{" + self.name + r"\}"

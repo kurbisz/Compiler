@@ -1,4 +1,4 @@
-from CompExceptions import VariableNotFoundException
+from CompExceptions import *
 from CompUtils import *
 
 
@@ -15,9 +15,16 @@ class CompManager:
         self.__clear_p0()
 
     def add_declaration(self, name, is_reference = False):
-        new_var = Variable(name, self.act_val_memory_address, is_reference)
-        self.variables.append(new_var)
-        self.act_val_memory_address += 1
+        try:
+            self.__get_variable(name)
+            raise VariableAlreadyDefinedException(f"Variable {name} has been already defined!")
+        except VariableNotFoundException:
+            new_var = Variable(name, self.act_val_memory_address, is_reference)
+            if is_reference:
+                new_var.set_defined(True)
+            self.variables.append(new_var)
+            self.act_val_memory_address += 1
+                
     
 
     def read(self, name):
@@ -37,6 +44,7 @@ class CompManager:
 
     def write(self, name):
         var : Variable = self.__get_variable(name)
+        self.__check_initialized(var)
         if var.is_reference:
             cmds = self.load_i_address(var.memory_address)
             cmds.append(Command("PUT 0"))
@@ -50,6 +58,7 @@ class CompManager:
 
     def load(self, name):
         var : Variable = self.__get_variable(name)
+        self.__check_initialized(var)
         if var.is_reference:
             self.p0 = [IAddress(var.memory_address)]
             return [Command(f"LOADI {var.memory_address}")]
@@ -93,12 +102,16 @@ class CompManager:
     
 
     def create_procedure(self, proc_name, start_index):
-        act = self.act_val_memory_address
-        self.act_val_memory_address += 1
-        proc = Procedure(proc_name, self.variables.copy(), start_index, act)
-        self.procedures.append(proc)
-        self.variables.clear()
-        return self.jump_i_address(act)
+        try:
+            self.__get_variable(proc_name)
+            raise VariableAlreadyDefinedException(f"Procedure {proc_name} has been already defined!")
+        except VariableNotFoundException:
+            act = self.act_val_memory_address
+            self.act_val_memory_address += 1
+            proc = Procedure(proc_name, self.variables.copy(), start_index, act)
+            self.procedures.append(proc)
+            self.variables.clear()
+            return self.jump_i_address(act)
 
     def call_procedure(self, proc_name, declarations):
         cmds = []
@@ -108,6 +121,7 @@ class CompManager:
         for variable in proc.arguments:
             if variable.is_reference:
                 dec = self.__get_variable(declarations[i])
+                self.set_initialized(dec.name)
                 if dec.is_reference:
                     cmds.extend(self.load_address(dec.memory_address))
                 else:
@@ -130,6 +144,7 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 + v2)
         elif vars == 0:
+            self.__check_initialized(v1)
             operation = Operation(str(v1) + " + " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -137,6 +152,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.extend([operation, Operation(str(v2) + " + " + str(v1))])
         elif vars == 1:
+            self.__check_initialized(v2)
             operation = Operation(str(v1) + " + " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -144,6 +160,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.extend([operation, Operation(str(v2) + " + " + str(v1))])
         else:
+            self.__check_initialized([v1, v2])
             operation = Operation(str(v1) + " + " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -188,6 +205,7 @@ class CompManager:
         if vars == -1:
             commands = self.set(max(v1 - v2, 0))
         elif vars == 0:
+            self.__check_initialized(v1)
             operation = Operation(str(v1) + " - " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -195,6 +213,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
+            self.__check_initialized(v2)
             operation = Operation(str(v1) + " - " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -202,6 +221,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         else:
+            self.__check_initialized([v1, v2])
             operation = Operation(str(v1) + " - " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -250,6 +270,7 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 * v2)
         elif vars == 0:
+            self.__check_initialized(v1)
             operation = Operation(str(v1) + " * " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -257,6 +278,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.extend([operation, Operation(str(v2) + " * " + str(v1))])
         elif vars == 1:
+            self.__check_initialized(v2)
             operation = Operation(str(v1) + " * " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -264,6 +286,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.extend([operation, Operation(str(v2) + " * " + str(v1))])
         else:
+            self.__check_initialized([v1, v2])
             operation = Operation(str(v1) + " * " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -419,6 +442,7 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 // v2)
         elif vars == 0:
+            self.__check_initialized(v1)
             operation = Operation(str(v1) + " / " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -426,6 +450,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
+            self.__check_initialized(v2)
             operation = Operation(str(v1) + " / " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -433,6 +458,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         else:
+            self.__check_initialized([v1, v2])
             operation = Operation(str(v1) + " / " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -607,6 +633,7 @@ class CompManager:
         if vars == -1:
             commands = self.set(v1 % v2)
         elif vars == 0:
+            self.__check_initialized(v1)
             operation = Operation(str(v1) + " % " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -614,6 +641,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         elif vars == 1:
+            self.__check_initialized(v2)
             operation = Operation(str(v1) + " % " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -621,6 +649,7 @@ class CompManager:
             self.__clear_p0()
             self.p0.append(operation)
         else:
+            self.__check_initialized([v1, v2])
             operation = Operation(str(v1) + " % " + str(v2))
             if CompManager.optimization and self.__is_in_p0(operation):
                 return []
@@ -813,8 +842,10 @@ class CompManager:
     def equal(self, v0, v1, ret_val):
         vars = are_variables(v0, v1)
         if vars == 0 and v1 == 0:
+            self.__check_initialized(v0)
             return ret_val, self.load(v0)
         if vars == 1 and v0 == 0:
+            self.__check_initialized(v1)
             return ret_val, self.load(v1)
         cmds = self.substract(v0, v1)
         cmds2 = self.substract(v1, v0)
@@ -836,6 +867,10 @@ class CompManager:
         self.static_vars[val] = mem_address
         cmds.extend(store_cmds)
         return cmds
+
+    def set_initialized(self, var_name):
+        var : Variable = self.__get_variable(var_name)
+        var.set_defined(True)
 
     def clear_cache(self):
         self.__clear_p0()
@@ -882,5 +917,19 @@ class CompManager:
         for proc in self.procedures:
             if proc.name == name:
                 return proc
-        raise VariableNotFoundException(f"Procedure with name {name} was not defined.")
+        raise ProcedureNotFoundException(f"Procedure with name {name} was not defined.")
 
+    def __check_initialized(self, vars):
+        if type(vars) == str:
+            var = self.__get_variable(vars)
+            if not var.defined:
+                raise VariableNotInitialized(f"Variabled with name {vars} was not initialized.")
+        elif type(vars) == Variable:
+            if not vars.defined:
+                raise VariableNotInitialized(f"Variabled with name {vars.name} was not initialized.")
+        else:
+            for var in vars:
+                if type(var) == str:
+                    var = self.__get_variable(var)
+                if not var.defined:
+                    raise VariableNotInitialized(f"Variabled with name {var.name} was not initialized.")

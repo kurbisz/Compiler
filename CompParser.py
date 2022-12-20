@@ -86,6 +86,7 @@ class CompParser(sly.Parser):
     def command(self, p):
         commands = p.expression
         commands.extend(self.manager.store(p.IDENTIFIER))
+        self.manager.set_initialized(p.IDENTIFIER)
         return commands
 
     @_('IF condition THEN commands ELSE commands ENDIF')
@@ -160,7 +161,9 @@ class CompParser(sly.Parser):
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
-        return self.manager.read(p.IDENTIFIER)
+        cmds = self.manager.read(p.IDENTIFIER)
+        self.manager.set_initialized(p.IDENTIFIER)
+        return cmds
 
     @_('WRITE value SEMICOLON')
     def command(self, p):

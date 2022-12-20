@@ -102,6 +102,7 @@ class PreParser(sly.Parser):
         ret_str += "!!!\n"
         ret_str += p.commands0
         ret_str += "\nELSE\n"
+        ret_str += "!!!\n"
         ret_str += p.commands1
         ret_str += "\nENDIF"
         return ret_str
