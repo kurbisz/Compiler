@@ -108,9 +108,13 @@ class CompManager:
         for variable in proc.arguments:
             if variable.is_reference:
                 dec = self.__get_variable(declarations[i])
-                cmds.extend(self.set(dec.memory_address))
+                if dec.is_reference:
+                    cmds.extend(self.load_address(dec.memory_address))
+                else:
+                    cmds.extend(self.set(dec.memory_address))
                 cmds.extend(self.store_address(variable.memory_address))
                 self.__var_changed(variable)
+                self.__var_changed(dec)
                 i += 1
         call_cmds = []
         call_cmds.extend(self.store_address(proc.return_memory_adress))

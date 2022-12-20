@@ -36,10 +36,11 @@ class CompParser(sly.Parser):
     @_('procedures PROCEDURE proc_head_decl IS VAR declarations BEGIN commands END')
     def procedures(self, p):
         index, cmds = p.procedures
+
         proc_name = p.proc_head_decl
         cmds.extend(p.commands)
         cmds.extend(self.manager.create_procedure(proc_name, index))
-        return index + len(cmds), cmds
+        return len(cmds) + 1, cmds
         
     
     @_('procedures PROCEDURE proc_head_decl IS BEGIN commands END')
@@ -48,7 +49,7 @@ class CompParser(sly.Parser):
         proc_name = p.proc_head_decl
         cmds.extend(p.commands)
         cmds.extend(self.manager.create_procedure(proc_name, index))
-        return index + len(cmds), cmds
+        return len(cmds) + 1, cmds
 
     @_('')
     def procedures(self, p):
