@@ -8,7 +8,7 @@ class PreLexer(sly.Lexer):
 
     ignore = ' \t\n'
 
-    ignore_comment = r'\[(.|\n)*\]'
+    ignore_comment = r'\[[^\]]*\]'
 
     IDENTIFIER = r'[_a-z]+'
 
