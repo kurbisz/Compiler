@@ -126,8 +126,8 @@ class PreParser(sly.Parser):
         if type(p.condition) == bool:
             if not p.condition:
                 return ""
-        ret_str = "WHILE " + p.condition + " DO\n"
-        ret_str += "!!!\n"
+        ret_str = "!!!\n"
+        ret_str += "WHILE " + p.condition + " DO\n"
         ret_str += p.commands
         ret_str += "\nENDWHILE"
         return ret_str
@@ -138,8 +138,8 @@ class PreParser(sly.Parser):
         if type(p.condition) == bool:
             if p.condition:
                 return p.commands
-        ret_str = "REPEAT\n"
-        ret_str += "!!!\n"
+        ret_str = "!!!\n"
+        ret_str += "REPEAT\n"
         ret_str += p.commands
         ret_str += "\nUNTIL " + p.condition + " ;"
         return ret_str
