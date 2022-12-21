@@ -2,7 +2,6 @@ import sly
 from sly.lex import *
 from sly.yacc import *
 
-from CompManager import CompManager
 from CompUtils import *
 from precompiler.PreLexer import PreLexer
 
@@ -13,13 +12,13 @@ class PreParser(sly.Parser):
     
     def __init__(self) -> None:
         super().__init__()
-        self.manager = CompManager()
+        self.manager = PreStore()
+
 
 
     @_('procedures main')
     def program_all(self, p):
-        return p.procedures + p.main
-    
+        return self.manager, (p.procedures + p.main)
 
     
     @_('procedures PROCEDURE proc_head_decl IS VAR declarations BEGIN commands END')
@@ -164,6 +163,7 @@ class PreParser(sly.Parser):
 
     @_('IDENTIFIER L_BRACKET proc_declarations R_BRACKET')
     def proc_head_decl(self, p):
+        self.manager.proc_names.append(p.IDENTIFIER)
         return p.IDENTIFIER + "(" + p.proc_declarations + ")"
 
 
@@ -208,14 +208,20 @@ class PreParser(sly.Parser):
 
     @_('value MUL value')
     def expression(self, p):
+        if not move_to_procedure("*", p.value0, p.value1):
+            self.manager.mul_am += 1
         return str(p.value0) + " * " + str(p.value1)
 
     @_('value DIV value')
     def expression(self, p):
+        if not move_to_procedure("/", p.value0, p.value1):
+            self.manager.div_am += 1
         return str(p.value0) + " / " + str(p.value1)
 
     @_('value MOD value')
     def expression(self, p):
+        if not move_to_procedure("%", p.value0, p.value1):
+            self.manager.mod_am += 1
         return str(p.value0) + " % " + str(p.value1)
 
     @_('value EQ value')

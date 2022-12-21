@@ -3,12 +3,13 @@ import sys
 
 from CompLexer import CompLexer
 from CompParser import CompParser
-from OptimizationUtils import optimize_input
 from precompiler.PreLexer import PreLexer
 from precompiler.PreParser import PreParser
+from PreManager import PreManager
 
 pre_lexer = PreLexer()
 pre_parser = PreParser()
+pre_manager = PreManager()
 
 lexer = CompLexer()
 parser = CompParser()
@@ -23,8 +24,8 @@ def main(debug = False):
         text = input_file.read()
     
 
-    text = pre_parser.parse(pre_lexer.tokenize(text))
-    text = optimize_input(text)
+    pre_store, text = pre_parser.parse(pre_lexer.tokenize(text))
+    text = pre_manager.optimize_input(text, pre_store)
     
     if debug:
         print(text)

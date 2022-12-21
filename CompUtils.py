@@ -29,6 +29,16 @@ class Command:
             return f"{self.cmd} {act_index + self.add_index}"
         return self.cmd
 
+class PreStore:
+
+    min_am = 5
+
+    def __init__(self) -> None:
+        self.mul_am = 0
+        self.div_am = 0
+        self.mod_am = 0
+        self.proc_names = []
+
 class Address:
     def __init__(self, address: int) -> None:
         self.address = address
@@ -78,3 +88,6 @@ def isPowerOfTwo(n):
         n = n // 2
         i += 1
     return True, i
+
+def move_to_procedure(c, a, b):
+    return (type(a) == int or a.isnumeric()) or (type(b) == int or b.isnumeric())

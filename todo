@@ -1,6 +1,2 @@
 Optymalizacja:
   - sprawdzenie czy procedura jest uzywana + przerzucenie procedury do kodu jezeli jest tylko raz uzyta
-  - przerzucenie mnozenia dzielenia i mod do procedury jeżeli wystąpiły > 1 raz (w precompilerze)
-
-Do spytania:
-  - jak zoptymalizowac przyklad z listy
