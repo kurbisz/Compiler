@@ -102,6 +102,8 @@ class PreParser(sly.Parser):
                 return p.commands0
             else:
                 return p.commands1
+        if p.commands0 == p.commands1:
+            return p.commands0
         ret_str = "IF " + p.condition + " THEN\n"
         ret_str += "!!!\n"
         ret_str += p.commands0
