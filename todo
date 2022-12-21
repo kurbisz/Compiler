@@ -1,2 +1,4 @@
 Optymalizacja:
-  - ???
+  - schematy blokowe:
+    - optymalizacja czy 2 ify maja to samo (PostCompiler)
+    - skrocenie pewnych stałych wyrażeń w danym bloku
