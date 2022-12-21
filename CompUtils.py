@@ -29,16 +29,6 @@ class Command:
             return f"{self.cmd} {act_index + self.add_index}"
         return self.cmd
 
-class PreStore:
-
-    min_am = 5
-
-    def __init__(self) -> None:
-        self.mul_am = 0
-        self.div_am = 0
-        self.mod_am = 0
-        self.proc_names = []
-
 class Address:
     def __init__(self, address: int) -> None:
         self.address = address
@@ -66,6 +56,25 @@ class Operation:
 
     def __eq__(self, __o: object) -> bool:
         return self.operation == __o.operation
+
+
+class PreStore:
+
+    min_am = 5
+
+    def __init__(self) -> None:
+        self.mul_am = 0
+        self.div_am = 0
+        self.mod_am = 0
+        self.proc_names : dict[str, PreProcedure] = {}
+
+class PreProcedure:
+
+    def __init__(self, declarations: str) -> None:
+        self.cmds : str = ""
+        self.used_times = 0
+        self.declarations = declarations.split(" , ")
+        self.var_declarations = []
 
 
 def is_int(var):

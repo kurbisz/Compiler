@@ -9,3 +9,6 @@ class VariableAlreadyDefinedException(Exception):
 
 class VariableNotInitialized(Exception):
     pass
+
+class InvalidProcedureCall(Exception):
+    pass

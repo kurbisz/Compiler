@@ -1,4 +1,4 @@
-from CompExceptions import VariableNotFoundException
+from CompExceptions import InvalidProcedureCall, VariableNotFoundException
 from CompUtils import *
 
 
@@ -8,6 +8,7 @@ class PreManager:
         res = self.replace_vars_with_values(input)
         res = self.remove_unused_lines(res)
         res = self.move_operations_if_worth(res, pre_store)
+        res = self.replace_one_used_procedures(res, pre_store)
         return res
 
     def replace_vars_with_values(self, input: str):
@@ -103,7 +104,6 @@ class PreManager:
             del l[line_index]
         return "\n".join(l)
 
-
     def move_operations_if_worth(self, s: str, pre_store: PreStore) -> str:
         res_str = []
         operations = {}
@@ -133,15 +133,86 @@ class PreManager:
                     if move_to_procedure(operation, first, second):
                         res_str.append(line)
                     else:
-                        res_str.append(operations[operation] + "(" + first + ", " + second + ", " + result + ") ;")
+                        res_str.append(operations[operation] + " ( " + first + " , " + second + " , " + result + " ) ;")
                     end = True
                     break
             if not end:
                 res_str.append(line)
         return "\n".join(res_str)
     
+    def replace_one_used_procedures(self, input: str, pre_store: PreStore):
+        l = input.split("\n")
+
+        # TODO read all vars and for each procedure rename appropriate names
+
+        vars = []
+
+        for i in range(len(l)):
+            line = l[i]
+            if "PROGRAM IS" in line:
+                if "VAR" in l[i+1]:
+                    vars = l[i+1][4:].split(" , ")
+                break
+
+        to_remove = []
+
+        for proc_name in pre_store.proc_names.keys():
+            if pre_store.proc_names[proc_name].used_times == 0:
+                to_remove.append(proc_name)
+            for var in pre_store.proc_names[proc_name].var_declarations:
+                if (new_var := var) in vars:
+                    while new_var in vars:
+                        new_var += "a"
+                    
+                    new_cmds = pre_store.proc_names[proc_name].cmds \
+                        .replace(" " + var + " ", " " + new_var + " ")
+
+                    pre_store.proc_names[proc_name].cmds = new_cmds
+                vars.append(new_var)
+        
+        res = []
+        for line in l:
+            end = False
+            for proc_name in pre_store.proc_names.keys():
+                if pre_store.proc_names[proc_name].used_times == 1:
+                    if "PROCEDURE" not in line and (proc_name + " (") in line:
+                        res.append(self.__replace_procedure(line, pre_store.proc_names[proc_name]))
+                        to_remove.append(proc_name)
+                        end = True
+                        break
+            if not end:
+                res.append(line)
+
+        new_res = []
+        delete = False
+
+        replace_var = False
+
+        for i in range(len(res)):
+            line = res[i]
+            if "VAR" in line and replace_var:
+                new_res.append("VAR " + " , ".join(vars))
+                replace_var = False
+                continue
+            
+            if "PROGRAM IS" in line:
+                replace_var = True
+
+
+            if "PROCEDURE" in line and line.split(" ")[1] in to_remove:
+                delete = True
+
+            if not delete:
+                new_res.append(line)
+
+            if line == "END":
+                delete = False
+
+        return "\n".join(new_res)
+
+    
     def __create_procedure(self, c, proc_name):
-        proc = "PROCEDURE " + proc_name + "(a, b, c) IS\n"
+        proc = "PROCEDURE " + proc_name + " ( a, b, c ) IS\n"
         proc += "BEGIN\n"
         proc += "c := a " + c + " b ;\n"
         proc += "END\n"
@@ -149,6 +220,34 @@ class PreManager:
     
     def __proc_name(self, proc_name, proc_names):
         res_proc_name = proc_name
-        while res_proc_name in proc_names:
+        while res_proc_name in proc_names.keys():
             res_proc_name += "a"
         return res_proc_name
+    
+    def __replace_procedure(self, line: str, proc: PreProcedure):
+        while "(" in line:
+            line = line[1:]
+        line = line[1:]
+
+        while ")" in line:
+            line = line[:-1]
+        line = line[:-1]
+
+        args = line.split(" , ")
+
+        if (n:=len(args)) != len(proc.declarations):
+            raise InvalidProcedureCall("Nieprawidlowa liczba argumentow!")
+
+        c = r"\$"
+        s = " "
+        repl = {(s + proc.declarations[i] + s): (s + c + args[i] + c + s) for i in range(n) }
+
+        new_res = ""
+        new_res += proc.cmds
+
+        for key, val in repl.items():
+            new_res = new_res.replace(key, val)
+
+        new_res = new_res.replace(c, "")
+
+        return new_res

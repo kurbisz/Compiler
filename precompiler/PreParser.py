@@ -34,6 +34,9 @@ class PreParser(sly.Parser):
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
+        proc_name = p.proc_head_decl.split(" ")[0]
+        self.manager.proc_names[proc_name].cmds = p.commands
+        self.manager.proc_names[proc_name].var_declarations = p.declarations.split(" , ")
         return ret_str
         
     
@@ -47,6 +50,8 @@ class PreParser(sly.Parser):
         ret_str += p.commands 
         ret_str += "\nEND"
         ret_str += "\n\n"
+        proc_name = p.proc_head_decl.split(" ")[0]
+        self.manager.proc_names[proc_name].cmds = p.commands
         return ret_str
 
     @_('')
@@ -88,7 +93,7 @@ class PreParser(sly.Parser):
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):
-        return p.IDENTIFIER + " := " + p.expression + " ;"
+        return " " + p.IDENTIFIER + " := " + p.expression + " ;"
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
@@ -158,18 +163,19 @@ class PreParser(sly.Parser):
 
     @_('IDENTIFIER L_BRACKET call_declarations R_BRACKET')
     def proc_head(self, p):
-        return p.IDENTIFIER + "(" + p.call_declarations + ")"
+        self.manager.proc_names[p.IDENTIFIER].used_times += 1
+        return p.IDENTIFIER + " ( " + p.call_declarations + " )"
 
 
     @_('IDENTIFIER L_BRACKET proc_declarations R_BRACKET')
     def proc_head_decl(self, p):
-        self.manager.proc_names.append(p.IDENTIFIER)
-        return p.IDENTIFIER + "(" + p.proc_declarations + ")"
+        self.manager.proc_names[p.IDENTIFIER] = PreProcedure(p.proc_declarations)
+        return p.IDENTIFIER + " ( " + p.proc_declarations + " )"
 
 
     @_('proc_declarations COMMA IDENTIFIER')
     def proc_declarations(self, p):
-        return p.proc_declarations + ", " + p.IDENTIFIER
+        return p.proc_declarations + " , " + p.IDENTIFIER
 
     @_('IDENTIFIER')
     def proc_declarations(self, p):
@@ -178,7 +184,7 @@ class PreParser(sly.Parser):
 
     @_('call_declarations COMMA IDENTIFIER')
     def call_declarations(self, p):
-        return p.call_declarations + ", " + p.IDENTIFIER
+        return p.call_declarations + " , " + p.IDENTIFIER
 
     @_('IDENTIFIER')
     def call_declarations(self, p):
@@ -187,7 +193,7 @@ class PreParser(sly.Parser):
 
     @_('declarations COMMA IDENTIFIER')
     def declarations(self, p):
-        return p.declarations + ", " + p.IDENTIFIER
+        return p.declarations + " , " + p.IDENTIFIER
 
     @_('IDENTIFIER')
     def declarations(self, p):
