@@ -7,8 +7,8 @@ class PreManager:
     def optimize_input(self, input: str, pre_store: PreStore):
         res = self.replace_vars_with_values(input)
         res = self.remove_unused_lines(res)
-        res = self.move_operations_if_worth(res, pre_store)
         res = self.replace_one_used_procedures(res, pre_store)
+        res = self.move_operations_if_worth(res, pre_store)
         return res
 
     def replace_vars_with_values(self, input: str):
@@ -127,9 +127,9 @@ class PreManager:
             for operation in operations.keys():
                 if operation in line:
                     spl = line.split(" ")
-                    result = spl[0]
-                    first = spl[2]
-                    second = spl[4]
+                    result = spl[1]
+                    first = spl[3]
+                    second = spl[5]
                     if move_to_procedure(operation, first, second):
                         res_str.append(line)
                     else:
@@ -142,8 +142,6 @@ class PreManager:
     
     def replace_one_used_procedures(self, input: str, pre_store: PreStore):
         l = input.split("\n")
-
-        # TODO read all vars and for each procedure rename appropriate names
 
         vars = []
 
@@ -159,6 +157,7 @@ class PreManager:
         for proc_name in pre_store.proc_names.keys():
             if pre_store.proc_names[proc_name].used_times == 0:
                 to_remove.append(proc_name)
+                continue
             for var in pre_store.proc_names[proc_name].var_declarations:
                 if (new_var := var) in vars:
                     while new_var in vars:
