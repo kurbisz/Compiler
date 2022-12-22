@@ -67,9 +67,10 @@ class PostBlock:
             i += 1
 
     def move_up_cmds(self, index_map: dict[int, int]):
-
         last = len(self.cmds) - 1
         last_cmd = self.cmds[last]
+        if "JUMPI" in last_cmd:
+            return
         for l in ["JUMP", "JZERO", "JPOS"]:
             if l in last_cmd:
                 index = get_cmd_index(last_cmd)
