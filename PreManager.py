@@ -169,43 +169,53 @@ class PreManager:
                     pre_store.proc_names[proc_name].cmds = new_cmds
                 vars.append(new_var)
         
-        res = []
-        for line in l:
+        lines = l.copy()
+        new_res = lines
+        for i in range(len(pre_store.proc_names.keys())):
+            res = []
             end = False
-            for proc_name in pre_store.proc_names.keys():
-                if pre_store.proc_names[proc_name].used_times == 1:
-                    if "PROCEDURE" not in line and (proc_name + " (") in line:
-                        res.append(self.__replace_procedure(line, pre_store.proc_names[proc_name]))
-                        to_remove.append(proc_name)
-                        end = True
-                        break
-            if not end:
-                res.append(line)
+            for line in reversed(lines):
+                if end:
+                    res = [line] + res
+                    continue
+                for proc_name in pre_store.proc_names.keys():
+                    if pre_store.proc_names[proc_name].used_times == 1:
+                        if "PROCEDURE" not in line and (proc_name + " (") in line:
+                            res = self.__replace_procedure(line, pre_store.proc_names[proc_name]).split("\n") + res
+                            to_remove.append(proc_name)
+                            end = True
+                            break
+                if not end:
+                    res = [line] + res
 
-        new_res = []
-        delete = False
+            new_res = []
+            delete = False
 
-        replace_var = False
+            replace_var = False
 
-        for i in range(len(res)):
-            line = res[i]
-            if "VAR" in line and replace_var:
-                new_res.append("VAR " + " , ".join(vars))
-                replace_var = False
-                continue
+            for i in range(len(res)):
+                line = res[i]
+                if "VAR" in line and replace_var:
+                    new_res.append("VAR " + " , ".join(vars))
+                    replace_var = False
+                    continue
+                
+                if "PROGRAM IS" in line:
+                    replace_var = True
+
+
+                if "PROCEDURE" in line and line.split(" ")[1] in to_remove:
+                    delete = True
+
+                if not delete:
+                    new_res.append(line)
+
+                if line == "END":
+                    delete = False
             
-            if "PROGRAM IS" in line:
-                replace_var = True
-
-
-            if "PROCEDURE" in line and line.split(" ")[1] in to_remove:
-                delete = True
-
-            if not delete:
-                new_res.append(line)
-
-            if line == "END":
-                delete = False
+            lines = new_res.copy()
+            # print("\n".join(lines))
+            # print("\n\n\n")
 
         return "\n".join(new_res)
 
