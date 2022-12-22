@@ -1,4 +1,5 @@
 Optymalizacja:
   - schematy blokowe (PostCompiler):
-    - optymalizacja czy 2 ify maja to samo
-    - skrocenie pewnych stałych wyrażeń w danym bloku
+    - sprawdzić czy JZERO / JPOS maja te same polecenia (zmienić na JUMP i jedno z nich usunąć)
+    - dodać info że w danym bloku zawsze mamy 0 (jeżeli można tam się dostać tylko z JZERO)
+    - sprawdzić czy występuje schemat modulo 2, jeżeli tak to przekazać info o tym że jest 0/1
