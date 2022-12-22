@@ -29,6 +29,7 @@ class CompParser(sly.Parser):
         for command in cmds:
             res.append(command.get_value(index))
             index += 1
+        res.append("HALT")
         return res
     
 
