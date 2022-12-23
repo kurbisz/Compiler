@@ -133,7 +133,8 @@ class CompManager:
         call_cmds = []
         call_cmds.extend(self.store_address(proc.return_memory_adress))
         call_cmds.extend(self.jump_address(proc.start_index))
-        cmds.append(Command("SET", len(call_cmds) + 1))
+        cmds.append(Command("SETI"))
+        self.__clear_p0()
         cmds.extend(call_cmds)
         self.__clear_p0()
         return cmds

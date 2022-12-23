@@ -1,5 +1,8 @@
 Optymalizacja:
   - schematy blokowe (PostCompiler):
-    - sprawdzić czy JZERO / JPOS maja te same polecenia (zmienić na JUMP i jedno z nich usunąć)
+    - usunąć kod, który nie jest nigdzie zapisywany (przed SET nie ma STORE, ...) w każdym z bloków
     - dodać info że w danym bloku zawsze mamy 0 (jeżeli można tam się dostać tylko z JZERO)
     - sprawdzić czy występuje schemat modulo 2, jeżeli tak to przekazać info o tym że jest 0/1
+
+TODO:
+  - naprawić dodawanie zmiennej do PROGRAM zamiast do odpowiedniej procedury przy podstawieniu kodu procedury

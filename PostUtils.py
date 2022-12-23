@@ -1,6 +1,7 @@
 class PostBlock:
 
-    def __init__(self, start: int, end: int, cmds: list[str]) -> None:
+    def __init__(self, id: int, start: int, end: int, cmds: list[str]) -> None:
+        self.id : int = id
         self.start : int = start
         self.end : int = end
         self.cmds : list[str] = cmds
@@ -8,6 +9,7 @@ class PostBlock:
         self.next2 : PostBlock = None
         self.last = False
         self.removed_lines = 0
+        self.to_remove = False
 
     def set_nexts(self, blocks : list["PostBlock"]):
         last_cmd = self.cmds[len(self.cmds) - 1]
@@ -78,5 +80,69 @@ class PostBlock:
                 self.cmds[last] = f"{l} {index}" 
                 break
 
+    def has_same_cmds(self, obj: "PostBlock"):
+        if not (self.next1 == obj.next1 and self.next2 == obj.next2):
+            return False
+        if (n1 := len(self.cmds)) == (n2 := len(obj.cmds)):
+            compare_cmds(self.cmds, obj.cmds)
+        elif n1 == n2 + 1:
+            for l in ["JUMP", "JZERO", "JPOS"]:
+                if l in self.cmds[n1 - 1]:
+                    return compare_cmds(self.cmds[:-1], obj.cmds)
+        elif n1 == n2 - 1:
+            for l in ["JUMP", "JZERO", "JPOS"]:
+                if l in obj.cmds[n2 - 1]:
+                    return compare_cmds(self.cmds, obj.cmds[:-1])
+        return False
+    
+    def replace_jump1(self, obj: "PostBlock"):
+        last = len(self.cmds) - 1
+        self.next1 = obj
+        if self.next1 == self.next2:
+            self.cmds[last] = f"JUMP {obj.start}"
+            return
+        last_cmd = self.cmds[last]
+        if "JUMP" in last_cmd:
+            self.cmds[last] = f"JUMP {obj.start}"
+        elif "JZERO" in last_cmd:
+            self.cmds[last] = f"JZERO {obj.start}"
+        else:
+            self.cmds.append(f"JUMP {obj.start}")
+            self.removed_lines -= 1
+    
+    def replace_jump2(self, obj: "PostBlock"):
+        last = len(self.cmds) - 1
+        self.next2 = obj
+        if self.next1 == self.next2:
+            self.cmds[last] = f"JUMP {obj.start}"
+            return
+        last_cmd = self.cmds[last]
+        if "JUMP" in last_cmd:
+            self.cmds[last] = f"JUMP {obj.start}"
+        elif "JPOS" in last_cmd:
+            self.cmds[last] = f"JPOS {obj.start}"
+        else:
+            self.cmds.append(f"JUMP {obj.start}")
+            self.removed_lines -= 1
+
+    def remove_unused_jumps(self):
+        last_cmd = self.cmds[len(self.cmds) - 1]
+        if "JUMP" in last_cmd and "JUMPI" not in last_cmd:
+            index = get_cmd_index(last_cmd)
+            if index == self.start + len(self.cmds):
+                del self.cmds[len(self.cmds) - 1]
+                self.removed_lines += 1
+
+
+    def __eq__(self, __o: object) -> bool:
+        return __o is not None and self.id == __o.id
+
 def get_cmd_index(cmd):
     return int(cmd.split(" ")[1])
+
+def compare_cmds(cmds1: list[str], cmds2: list[str]):
+    # asserts that len of cmds1 and cmds2 are the same
+    for i in range(len(cmds1)):
+        if cmds1[i] != cmds2[i]:
+            return False
+    return True
