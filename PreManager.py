@@ -158,7 +158,8 @@ class PreManager:
             if pre_store.proc_names[proc_name].used_times == 0:
                 to_remove.append(proc_name)
                 continue
-            for var in pre_store.proc_names[proc_name].var_declarations:
+            for i in range(len(decla := pre_store.proc_names[proc_name].var_declarations)):
+                var = decla[i]
                 if (new_var := var) in vars:
                     while new_var in vars:
                         new_var += "a"
@@ -167,6 +168,7 @@ class PreManager:
                         .replace(" " + var + " ", " " + new_var + " ")
 
                     pre_store.proc_names[proc_name].cmds = new_cmds
+                    pre_store.proc_names[proc_name].var_declarations[i] = new_var
                 vars.append(new_var)
         
         lines = l.copy()
@@ -174,7 +176,10 @@ class PreManager:
         for i in range(len(pre_store.proc_names.keys())):
             res = []
             end = False
-            for line in reversed(lines):
+            lines = lines.copy()
+            lines.reverse()
+            for k in range(len(lines)):
+                line = lines[k]
                 if end:
                     res = [line] + res
                     continue
@@ -184,24 +189,23 @@ class PreManager:
                             res = self.__replace_procedure(line, pre_store.proc_names[proc_name]).split("\n") + res
                             to_remove.append(proc_name)
                             end = True
-                            break
+                            j = k + 1
+                            cont_while = True 
+                            while cont_while:
+                                if "VAR" in lines[j]:
+                                    for decl in pre_store.proc_names[proc_name].var_declarations:
+                                        lines[j] += " , " + decl
+                                    cont_while = False
+                                j += 1
                 if not end:
                     res = [line] + res
-
+            
             new_res = []
             delete = False
 
-            replace_var = False
 
-            for i in range(len(res)):
-                line = res[i]
-                if "VAR" in line and replace_var:
-                    new_res.append("VAR " + " , ".join(vars))
-                    replace_var = False
-                    continue
-                
-                if "PROGRAM IS" in line:
-                    replace_var = True
+            for k in range(len(res)):
+                line = res[k]
 
 
                 if "PROCEDURE" in line and line.split(" ")[1] in to_remove:
@@ -214,9 +218,7 @@ class PreManager:
                     delete = False
             
             lines = new_res.copy()
-            # print("\n".join(lines))
-            # print("\n\n\n")
-
+        
         return "\n".join(new_res)
 
     
