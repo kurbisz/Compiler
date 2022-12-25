@@ -86,7 +86,7 @@ class CompManager:
         self.p0.append(Address(var.memory_address))
         return [Command(f"STORE {var.memory_address}")]
 
-    def store_act(self) -> int:
+    def store_act(self) -> tuple[int, list[Command]]:
         act = self.act_val_memory_address
         self.act_val_memory_address += 1
         self.p0.append(Address(act))
@@ -133,6 +133,7 @@ class CompManager:
         call_cmds = []
         call_cmds.extend(self.store_address(proc.return_memory_adress))
         call_cmds.extend(self.jump_address(proc.start_index))
+        # Remember to change PostCompiler if amount of lines after SETI is changed
         cmds.append(Command("SETI"))
         self.__clear_p0()
         cmds.extend(call_cmds)
@@ -663,13 +664,13 @@ class CompManager:
         if val == 0 or val == 1:
             return self.set(0)
         if val == 2:
-            res_cmds = self.__init_static_var(1)
-            res_cmds.extend(self.load(var_name))
-            res_cmds.extend(self.__add_address(self.static_vars[1]))
+            res_cmds = self.load(var_name)
             res_cmds.extend(self.half())
             res_cmds.extend(self.__add_address(0))
-            var = self.__get_variable(var_name)
-            res_cmds.extend(self.__sub(var))
+            act_mem, act_cmds = self.store_act()
+            res_cmds.extend(act_cmds)
+            res_cmds.extend(self.load(var_name))
+            res_cmds.extend(self.__sub_address(act_mem))
             return res_cmds
         var = self.__get_variable(var_name)
         res_cmds = self.__init_static_var(val)
