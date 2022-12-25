@@ -143,9 +143,10 @@ class PostBlock:
                 j = i - 1
                 while j >= 0:
                     if "SET" in self.cmds[j] or "ADD" in self.cmds[j] or "SUB" in self.cmds[j] \
-                        or "HALF" in self.cmds[0]:
+                        or "HALF" in self.cmds[i]:
                         index_to_remove.append(j)
-                    if "STORE" in self.cmds[j] or "STOREI" in self.cmds[0]:
+                    if "STORE" in self.cmds[j] or "STOREI" in self.cmds[j] \
+                        or self.cmds[j] == "PUT 0" or self.cmds[j] == "GET 0": 
                         break
                     j -= 1
             i -= 1
@@ -165,6 +166,37 @@ class PostBlock:
             return
         if len(self.next1.previous) == 1:
             self.next1.start_val = 0
+        if len(self.next2.previous) == 1:
+
+            def check_second(n):
+                if len(self.cmds) >= 8:
+                    if "LOAD" not in (cmd0 := self.cmds[n - 7]):
+                        return
+                    index1 = get_cmd_index(cmd0)
+                    if self.cmds[n - 6] != "HALF" or self.cmds[n - 5] != "ADD 0" \
+                        or "STORE" not in (cmd3 := self.cmds[n - 4]):
+                        return
+                    index2 = get_cmd_index(cmd3)
+                    if self.cmds[n - 3] != f"LOAD {index1}" or self.cmds[n - 2] != f"SUB {index2}" \
+                        or "STORE" not in self.cmds[n - 1]:
+                        return
+                    self.next2.start_val = 1
+
+            if len(self.cmds) >= 7:
+                n = len(self.cmds) - 1
+                if "LOAD" not in (cmd0 := self.cmds[n - 6]):
+                    check_second(n)
+                    return
+                index1 = get_cmd_index(cmd0)
+                if self.cmds[n - 5] != "HALF" or self.cmds[n - 4] != "ADD 0" \
+                     or "STORE" not in (cmd3 := self.cmds[n - 3]):
+                    return
+                index2 = get_cmd_index(cmd3)
+                if self.cmds[n - 2] != f"LOAD {index1}" or self.cmds[n - 1] != f"SUB {index2}":
+                    return
+                self.next2.start_val = 1
+                return
+            
 
     def replace_start_sets(self):
         if self.cmds[0] == f"SET {self.start_val}":
