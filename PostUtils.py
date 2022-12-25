@@ -132,7 +132,25 @@ class PostBlock:
             if index == self.start + len(self.cmds):
                 del self.cmds[len(self.cmds) - 1]
                 self.removed_lines += 1
-
+    
+    def remove_unused_cmds_before_set(self):
+        i = len(self.cmds) - 1
+        index_to_remove = []
+        while i >= 0:
+            if "SET" in self.cmds[i] or "LOAD" in self.cmds[i] or "LOADI" in self.cmds[i]:
+                j = i - 1
+                while j >= 0:
+                    if "SET" in self.cmds[j] or "ADD" in self.cmds[j] or "SUB" in self.cmds[j] \
+                        or "HALF" in self.cmds[0]:
+                        index_to_remove.append(j)
+                    if "STORE" in self.cmds[j] or "STOREI" in self.cmds[0]:
+                        break
+                    j -= 1
+            i -= 1
+        index_to_remove = list(set(index_to_remove))
+        self.removed_lines += len(index_to_remove)
+        for i in reversed(sorted(index_to_remove)):
+            del self.cmds[i]
 
     def __eq__(self, __o: object) -> bool:
         return __o is not None and self.id == __o.id
