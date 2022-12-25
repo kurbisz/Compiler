@@ -7,6 +7,8 @@ class PostBlock:
         self.cmds : list[str] = cmds
         self.next1 : PostBlock = None
         self.next2 : PostBlock = None
+        self.previous : list[PostBlock] = []
+        self.start_val = -1
         self.last = False
         self.removed_lines = 0
         self.to_remove = False
@@ -151,6 +153,23 @@ class PostBlock:
         self.removed_lines += len(index_to_remove)
         for i in reversed(sorted(index_to_remove)):
             del self.cmds[i]
+    
+    def init_previous_for_nexts(self):
+        if self.next1 is not None:
+            self.next1.previous.append(self)
+        if self.next2 is not None:
+            self.next2.previous.append(self)
+    
+    def set_start_val_for_nexts(self):
+        if self.next1 is None or self.next2 is None:
+            return
+        if len(self.next1.previous) == 1:
+            self.next1.start_val = 0
+
+    def replace_start_sets(self):
+        if self.cmds[0] == f"SET {self.start_val}":
+            del self.cmds[0]
+            self.removed_lines += 1
 
     def __eq__(self, __o: object) -> bool:
         return __o is not None and self.id == __o.id

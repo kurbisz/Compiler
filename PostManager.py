@@ -39,6 +39,7 @@ class PostManager:
 
             last = 0
 
+
             # Initialize dict and list
 
             for i in range(len(start_jumps)):
@@ -57,6 +58,7 @@ class PostManager:
 
         init_blocks_list(cmds)
 
+
         # Remove unnecessary STOREs
 
         def remove_stores():
@@ -71,6 +73,30 @@ class PostManager:
             apply_to_blocks(new_inds)
         
         remove_stores()
+
+
+        # Init previous blocks
+
+        for block in blocks_list:
+            block.init_previous_for_nexts()
+
+        for block in blocks_list:
+            block.set_start_val_for_nexts()
+
+
+        # Remove SET at the beggining of the block if it had only 1 previous block with certain result
+        
+        am = 0
+        new_inds = {}
+        for block in blocks_list:
+            block.replace_start_sets()
+            new_inds[block.start] = block.start - am
+            block.start -= am
+            am += block.removed_lines
+        
+
+        apply_to_blocks(new_inds)
+
 
         # Remove blocks which are duplicates
 
@@ -136,11 +162,12 @@ class PostManager:
         init_blocks_list(new_cmds)
 
         remove_stores()
-        am = 0
-        new_inds : dict[int, int] = {}
+
 
         # Remove commands which are before SET (after removing IF ELSE)
 
+        am = 0
+        new_inds : dict[int, int] = {}
         for block in blocks_list:
             if not block.to_remove:
                 block.remove_unused_cmds_before_set()
