@@ -19,6 +19,9 @@ class CompParser(sly.Parser):
     @_('procedures main')
     def program_all(self, p):
         _, cmds = p.procedures
+        copy_cmds = self.manager.initialize_numbers_cmds
+        copy_cmds.extend(cmds)
+        cmds = copy_cmds
         if cmds:
             new_cmds = self.manager.jump(len(cmds) + 1)
             new_cmds.extend(cmds)
@@ -26,6 +29,7 @@ class CompParser(sly.Parser):
         cmds.extend(p.main)
         res: list[str] = []
         index = 0
+        
         for command in cmds:
             res.append(command.get_value(index))
             index += 1

@@ -28,7 +28,8 @@ def main(debug = False):
 
     pre_store, text = pre_parser.parse(pre_lexer.tokenize(text))
     text = pre_manager.optimize_input(text, pre_store)
-    
+    parser.manager.initialize_numbers(pre_store.numbers)
+
     if debug:
         print(text)
 

@@ -11,6 +11,7 @@ class CompManager:
         self.variables = []
         self.static_vars = {}
         self.procedures = []
+        self.initialize_numbers_cmds = []
         self.__clear_div_results()
         self.__clear_p0()
 
@@ -236,8 +237,11 @@ class CompManager:
         if val == 0:
             return self.load(var_name)
         res = self.set(val)
-        mem_address, cmds = self.store_act()
-        res.extend(cmds)
+        if val in self.static_vars.keys():
+            mem_address = self.static_vars[val]
+        else:
+            mem_address, cmds = self.store_act()
+            res.extend(cmds)
         res.extend(self.load(var_name))
         res.extend(self.__sub_address(mem_address))
         return res
@@ -935,3 +939,9 @@ class CompManager:
                     var = self.__get_variable(var)
                 if not var.defined:
                     raise VariableNotInitialized(f"Variabled with name {var.name} was not initialized.")
+
+    def initialize_numbers(self, numbers : list[int]):
+        cmds = []
+        for number in numbers:
+            cmds.extend(self.__init_static_var(number))
+        self.initialize_numbers_cmds = cmds

@@ -67,6 +67,7 @@ class PreStore:
         self.div_am = 0
         self.mod_am = 0
         self.proc_names : dict[str, PreProcedure] = {}
+        self.numbers : list[int] = []
 
 class PreProcedure:
 

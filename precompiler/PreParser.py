@@ -12,7 +12,7 @@ class PreParser(sly.Parser):
     
     def __init__(self) -> None:
         super().__init__()
-        self.manager = PreStore()
+        self.manager : PreStore = PreStore()
 
 
 
@@ -212,6 +212,9 @@ class PreParser(sly.Parser):
 
     @_('value SUB value')
     def expression(self, p):
+        if are_variables(p.value0, p.value1) == 0:
+            if (val := p.value1) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " - " + str(p.value1)
 
     @_('value MUL value')
