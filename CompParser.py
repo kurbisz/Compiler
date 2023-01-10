@@ -19,13 +19,11 @@ class CompParser(sly.Parser):
     @_('procedures main')
     def program_all(self, p):
         _, cmds = p.procedures
-        copy_cmds = self.manager.initialize_numbers_cmds
-        copy_cmds.extend(cmds)
-        cmds = copy_cmds
-        if len(cmds) > len(self.manager.initialize_numbers_cmds):
-            new_cmds = self.manager.jump(len(cmds) - len(self.manager.initialize_numbers_cmds) + 1)
+        if cmds:
+            new_cmds = self.manager.jump(len(cmds) + 1)
             new_cmds.extend(cmds)
             cmds = new_cmds
+        cmds.extend(self.manager.initialize_numbers_cmds)
         cmds.extend(p.main)
         res: list[str] = []
         index = 0
