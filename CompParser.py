@@ -22,8 +22,8 @@ class CompParser(sly.Parser):
         copy_cmds = self.manager.initialize_numbers_cmds
         copy_cmds.extend(cmds)
         cmds = copy_cmds
-        if cmds:
-            new_cmds = self.manager.jump(len(cmds) + 1)
+        if len(cmds) > len(self.manager.initialize_numbers_cmds):
+            new_cmds = self.manager.jump(len(cmds) - len(self.manager.initialize_numbers_cmds) + 1)
             new_cmds.extend(cmds)
             cmds = new_cmds
         cmds.extend(p.main)

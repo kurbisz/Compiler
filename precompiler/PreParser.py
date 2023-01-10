@@ -240,6 +240,12 @@ class PreParser(sly.Parser):
         vars = are_variables(p.value0, p.value1)
         if vars == -1:
             return p.value0 == p.value1
+        if vars == 0:
+            if (val := p.value1) not in self.manager.numbers:
+                self.manager.numbers.append(val)
+        elif vars == 1:
+            if (val := p.value0) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " = " + str(p.value1)
 
     @_('value NE value')
@@ -247,6 +253,12 @@ class PreParser(sly.Parser):
         vars = are_variables(p.value0, p.value1)
         if vars == -1:
             return p.value0 != p.value1
+        if vars == 0:
+            if (val := p.value1) not in self.manager.numbers:
+                self.manager.numbers.append(val)
+        elif vars == 1:
+            if (val := p.value0) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " != " + str(p.value1)
 
     @_('value GT value')
@@ -256,6 +268,9 @@ class PreParser(sly.Parser):
             return p.value0 > p.value1
         if vars == 1 and p.value0 == 0:
             return False
+        if vars == 0:
+            if (val := p.value1) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " > " + str(p.value1)
 
     @_('value LT value')
@@ -265,6 +280,9 @@ class PreParser(sly.Parser):
             return p.value0 < p.value1
         if vars == 0 and p.value1 == 0:
             return False
+        if vars == 1:
+            if (val := p.value0) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " < " + str(p.value1)
 
     @_('value GE value')
@@ -274,6 +292,9 @@ class PreParser(sly.Parser):
             return p.value0 >= p.value1
         if vars == 0 and p.value1 == 0:
             return True
+        if vars == 1:
+            if (val := p.value0) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " >= " + str(p.value1)
 
     @_('value LE value')
@@ -283,6 +304,9 @@ class PreParser(sly.Parser):
             return p.value0 <= p.value1
         if vars == 1 and p.value0 == 0:
             return True
+        if vars == 0:
+            if (val := p.value1) not in self.manager.numbers:
+                self.manager.numbers.append(val)
         return str(p.value0) + " <= " + str(p.value1)
 
     
