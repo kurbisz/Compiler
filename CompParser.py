@@ -84,6 +84,20 @@ class CompParser(sly.Parser):
         self.manager.clear_cache()
         return []
 
+    @_('INITIALIZER init_declarations')
+    def command(self, p):
+        self.manager.clear_cache()
+        return []
+
+
+    @_('init_declarations COMMA IDENTIFIER')
+    def init_declarations(self, p):
+        self.manager.init_var(p.IDENTIFIER)
+
+    @_('IDENTIFIER')
+    def init_declarations(self, p):
+        self.manager.init_var(p.IDENTIFIER)
+
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):

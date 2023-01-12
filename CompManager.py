@@ -913,7 +913,7 @@ class CompManager:
                 return True
         return False
 
-    def __get_variable(self, name):
+    def __get_variable(self, name) -> Variable:
         for var in self.variables:
             if var.name == name:
                 return var
@@ -945,3 +945,7 @@ class CompManager:
         for number in numbers:
             cmds.extend(self.__init_static_var(number))
         self.initialize_numbers_cmds = cmds
+
+    def init_var(self, var: str):
+        variable = self.__get_variable(var)
+        variable.set_defined(True)

@@ -31,11 +31,11 @@ class PreParser(sly.Parser):
         ret_str += p.declarations 
         ret_str += "\nBEGIN\n" 
         ret_str += "!!!\n"
-        ret_str += p.commands 
+        ret_str += p.commands[0] 
         ret_str += "\nEND"
         ret_str += "\n\n"
         proc_name = p.proc_head_decl.split(" ")[0]
-        self.manager.proc_names[proc_name].cmds = p.commands
+        self.manager.proc_names[proc_name].cmds = p.commands[0]
         self.manager.proc_names[proc_name].var_declarations = p.declarations.split(" , ")
         return ret_str
         
@@ -47,11 +47,11 @@ class PreParser(sly.Parser):
         ret_str += p.proc_head_decl 
         ret_str += " IS\nBEGIN\n"
         ret_str += "!!!\n"
-        ret_str += p.commands 
+        ret_str += p.commands[0]
         ret_str += "\nEND"
         ret_str += "\n\n"
         proc_name = p.proc_head_decl.split(" ")[0]
-        self.manager.proc_names[proc_name].cmds = p.commands
+        self.manager.proc_names[proc_name].cmds = p.commands[0]
         return ret_str
 
     @_('')
@@ -66,7 +66,7 @@ class PreParser(sly.Parser):
         ret_str += p.declarations
         ret_str += "\nBEGIN\n"
         ret_str += "!!!\n"
-        ret_str += p.commands
+        ret_str += p.commands[0]
         ret_str += "\nEND"
         return ret_str
 
@@ -74,57 +74,61 @@ class PreParser(sly.Parser):
     def main(self, p):
         ret_str = "PROGRAM IS"
         ret_str += "\nBEGIN\n"
-        ret_str += p.commands
+        ret_str += p.commands[0]
         ret_str += "\nEND"
         return ret_str
 
 
     @_('commands command')
     def commands(self, p):
-        ret_str = p.commands
+        cmd = p.command[0]
+        initialized = p.command[1]
+        ret_str = p.commands[0]
         ret_str += "\n"
-        ret_str += p.command
-        return ret_str
+        ret_str += cmd
+        return ret_str, initialized + p.commands[1]
 
     @_('command')
     def commands(self, p):
-        return p.command
+        cmd = p.command[0]
+        initialized = p.command[1]
+        return cmd, initialized
 
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):
-        return " " + p.IDENTIFIER + " := " + p.expression + " ;"
+        return " " + p.IDENTIFIER + " := " + p.expression + " ;", [p.IDENTIFIER]
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
         if type(p.condition) == bool:
             if p.condition:
-                return p.commands0
+                return p.commands0[0]
             else:
-                return p.commands1
-        if p.commands0 == p.commands1:
-            return p.commands0
+                return p.commands1[0]
+        if p.commands0[0] == p.commands1[0]:
+            return p.commands0[0]
         ret_str = "IF " + p.condition + " THEN\n"
         ret_str += "!!!\n"
-        ret_str += p.commands0
+        ret_str += p.commands0[0]
         ret_str += "\nELSE\n"
         ret_str += "!!!\n"
-        ret_str += p.commands1
+        ret_str += p.commands1[0]
         ret_str += "\nENDIF"
-        return ret_str
+        return ret_str, p.commands0[1] + p.commands1[1]
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
         if type(p.condition) == bool:
             if p.condition:
-                return p.commands
+                return p.commands[0]
             else:
                 return ""
         ret_str = "IF " + p.condition + " THEN\n"
         ret_str += "!!!\n"
-        ret_str += p.commands
+        ret_str += p.commands[0]
         ret_str += "\nENDIF"
-        return ret_str
+        return ret_str, p.commands[1]
 
 
     @_('WHILE condition DO commands ENDWHILE')
@@ -133,10 +137,10 @@ class PreParser(sly.Parser):
             if not p.condition:
                 return ""
         ret_str = "!!!\n"
-        ret_str += "WHILE " + p.condition + " DO\n"
-        ret_str += p.commands
+        ret_str += "WHILE " + p.condition + " DO\n^^^ " + ",".join(p.commands[1]) + "\n"
+        ret_str += p.commands[0]
         ret_str += "\nENDWHILE"
-        return ret_str
+        return ret_str, p.commands[1]
 
 
     @_('REPEAT commands UNTIL condition SEMICOLON')
@@ -145,28 +149,28 @@ class PreParser(sly.Parser):
             if p.condition:
                 return p.commands
         ret_str = "!!!\n"
-        ret_str += "REPEAT\n"
+        ret_str += "REPEAT\n^^^ " + ",".join(p.commands[1]) + "\n"
         ret_str += p.commands
         ret_str += "\nUNTIL " + p.condition + " ;"
-        return ret_str
+        return ret_str, p.commands[1]
 
     @_('proc_head SEMICOLON')
     def command(self, p):
-        return p.proc_head + " ;"
+        return p.proc_head[0] + " ;", p.proc_head[1]
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
-        return "READ " + p.IDENTIFIER + " ;"
+        return "READ " + p.IDENTIFIER + " ;", [p.IDENTIFIER]
 
     @_('WRITE value SEMICOLON')
     def command(self, p):
-        return "WRITE " + str(p.value) + " ;"
+        return "WRITE " + str(p.value) + " ;", []
 
 
     @_('IDENTIFIER L_BRACKET call_declarations R_BRACKET')
     def proc_head(self, p):
         self.manager.proc_names[p.IDENTIFIER].used_times += 1
-        return p.IDENTIFIER + " ( " + p.call_declarations + " )"
+        return p.IDENTIFIER + " ( " + p.call_declarations[0] + " )", p.call_declarations[1]
 
 
     @_('IDENTIFIER L_BRACKET proc_declarations R_BRACKET')
@@ -186,11 +190,11 @@ class PreParser(sly.Parser):
 
     @_('call_declarations COMMA IDENTIFIER')
     def call_declarations(self, p):
-        return p.call_declarations + " , " + p.IDENTIFIER
+        return p.call_declarations[0] + " , " + p.IDENTIFIER, p.call_declarations[1] + [p.IDENTIFIER]
 
     @_('IDENTIFIER')
     def call_declarations(self, p):
-        return p.IDENTIFIER
+        return p.IDENTIFIER, [p.IDENTIFIER]
 
 
     @_('declarations COMMA IDENTIFIER')
