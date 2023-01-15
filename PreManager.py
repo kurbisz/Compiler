@@ -28,7 +28,7 @@ class PreManager:
                     l[i] = el.replace(" " + repl + " ", " " + str(act[repl]) + " ")
             if ":=" in el:
                 for repl in act.keys():
-                    l[i] = el.replace(" " + repl + " ", " " + str(act[repl]) + " ")
+                    l[i] = l[i].replace(" " + repl + " ", " " + str(act[repl]) + " ")
                 spl = l[i].replace(" ", "").replace(";", "").split(":=")
                 values = spl[1]
                 try:
@@ -53,7 +53,8 @@ class PreManager:
                     if spl[0] in act:
                         del act[spl[0]]
                     continue
-                act[spl[0]] = res
+                if res <= maxLongLong:
+                    act[spl[0]] = res
         return "\n".join(l)
     
     def remove_unused_lines(self, input: str):
@@ -67,6 +68,9 @@ class PreManager:
                 continue
             s = el.split(" ")
             if s[0] == "READ":
+                if s[1] in act:
+                    del act[spl[0]]
+            if s[0] == "WRITE":
                 if s[1] in act:
                     del act[spl[0]]
             if ":=" in el:

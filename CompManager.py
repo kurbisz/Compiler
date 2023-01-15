@@ -25,6 +25,19 @@ class CompManager:
                 new_var.set_defined(True)
             self.variables.append(new_var)
             self.act_val_memory_address += 1
+
+    def add_fake_declaration(self, memory):
+        name = "-"
+        while True:
+            try:
+                self.__get_variable(name)
+                name += "a"
+            except VariableNotFoundException:
+                new_var = Variable(name, memory, False)
+                new_var.set_defined(True)
+                self.variables.append(new_var)
+                self.act_val_memory_address += 1
+                return name
                 
     
 
@@ -145,7 +158,14 @@ class CompManager:
     def add(self, v1, v2):
         vars = are_variables(v1, v2)
         if vars == -1:
-            commands = self.set(v1 + v2)
+            if v1 + v2 <= maxLongLong:
+                commands = self.set(v1 + v2)
+            else:
+                commands = self.set(v1)
+                adr, cmds = self.store_act()
+                commands.extend(cmds)
+                commands.extend(self.set(v2))
+                commands.extend(self.__add_address(adr))
         elif vars == 0:
             self.__check_initialized(v1)
             operation = Operation(str(v1) + " + " + str(v2))
@@ -274,7 +294,21 @@ class CompManager:
     def multiply(self, v1, v2):
         vars = are_variables(v1, v2)
         if vars == -1:
-            commands = self.set(v1 * v2)
+            if v1 * v2 <= maxLongLong:
+                commands = self.set(v1 * v2)
+            else:
+                if v2 < v1:
+                    commands = self.set(v1)
+                    adr1, cmds1 = self.store_act()
+                    name1 = self.add_fake_declaration(adr1)
+                    commands.extend(cmds1)
+                    commands.extend(self.multiply_var_val(name1, v2))
+                else:
+                    commands = self.set(v2)
+                    adr1, cmds1 = self.store_act()
+                    name1 = self.add_fake_declaration(adr1)
+                    commands.extend(cmds1)
+                    commands.extend(self.multiply_var_val(name1, v1))
         elif vars == 0:
             self.__check_initialized(v1)
             operation = Operation(str(v1) + " * " + str(v2))
