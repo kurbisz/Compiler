@@ -100,7 +100,8 @@ class PreManager:
                     continue
                 if spl[0] in act:
                     remove_lines.append(act[spl[0]])
-                act[spl[0]] = i
+                if res <= maxLongLong:
+                    act[spl[0]] = i
         for key in act.keys():
             remove_lines.append(act[key])
         remove_lines = sorted(remove_lines, reverse=True)
