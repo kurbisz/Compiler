@@ -103,4 +103,4 @@ def move_to_procedure(c, a, b):
     return (type(a) == int or a.isnumeric()) or (type(b) == int or b.isnumeric())
 
 
-maxLongLong = 4294967295
+maxLongLong = 9223372036854775807

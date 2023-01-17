@@ -67,8 +67,17 @@ class CompManager:
 
 
     def set(self, val):
-        self.p0 = [Value(val)]
-        return [Command(f"SET {val}")]
+        if val <= maxLongLong:
+            self.p0 = [Value(val)]
+            return [Command(f"SET {val}")]
+        else:
+            cmds = self.set(1)
+            mem, store_cmds = self.store_act()
+            cmds.extend(store_cmds)
+            var1 = self.add_fake_declaration(mem)
+            cmds.extend(self.multiply_var_val(var1, val))
+            return cmds
+
 
     def load(self, name):
         var : Variable = self.__get_variable(name)
