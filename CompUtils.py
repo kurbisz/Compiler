@@ -126,6 +126,18 @@ def move_to_procedure(c, a, b):
         return int(b) not in [0, 1, 2]
     return True
 
+def sum_var_dicts(dict1, dict2):
+    res = {key: value for key, value in dict2.items()}
+    for key in dict1:
+        if key in dict2:
+            if dict1[key] == True or dict2[key] == True:
+                res[key] = True
+            else:
+                res[key] = dict1[key] + dict2[key]
+        else:
+            res[key] = dict1[key]
+    return res
+
 def is_i(a):
     return (type(a) == int or a.isnumeric())
 

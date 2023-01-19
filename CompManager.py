@@ -126,9 +126,9 @@ class CompManager:
 
     def create_procedure(self, proc_name, start_index):
         try:
-            self.__get_variable(proc_name)
+            self.__get_procedure(proc_name)
             raise VariableAlreadyDefinedException(f"Procedure {proc_name} has been already defined!")
-        except VariableNotFoundException:
+        except ProcedureNotFoundException:
             act = self.act_val_memory_address
             self.act_val_memory_address += 1
             proc = Procedure(proc_name, self.variables.copy(), start_index, act)

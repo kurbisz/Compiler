@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import sly
 from sly.lex import *
 from sly.yacc import *
@@ -15,6 +17,7 @@ class PreParser(sly.Parser):
         super().__init__()
         self.manager : PreStore = PreStore()
         self.fake_comp_manager : CompManager = CompManager()
+        self.var_manager : CompManager = CompManager() 
 
 
 
@@ -39,6 +42,7 @@ class PreParser(sly.Parser):
         proc_name = p.proc_head_decl.split(" ")[0]
         self.manager.proc_names[proc_name].cmds = p.commands[0]
         self.manager.proc_names[proc_name].var_declarations = p.declarations.split(" , ")
+        self.var_manager.variables.clear()
         return ret_str
         
     
@@ -54,6 +58,7 @@ class PreParser(sly.Parser):
         ret_str += "\n\n"
         proc_name = p.proc_head_decl.split(" ")[0]
         self.manager.proc_names[proc_name].cmds = p.commands[0]
+        self.var_manager.variables.clear()
         return ret_str
 
     @_('')
@@ -88,7 +93,7 @@ class PreParser(sly.Parser):
         ret_str = p.commands[0]
         ret_str += "\n"
         ret_str += cmd
-        return ret_str, initialized + p.commands[1]
+        return ret_str, sum_var_dicts(initialized, p.commands[1])
 
     @_('command')
     def commands(self, p):
@@ -99,7 +104,41 @@ class PreParser(sly.Parser):
 
     @_('IDENTIFIER ASSIGN expression SEMICOLON')
     def command(self, p):
-        return " " + p.IDENTIFIER + " := " + p.expression + " ;", [p.IDENTIFIER]
+
+        def get_decl(l):
+            a, b = l[0], l[1]
+            if is_i(a) and is_i(b):
+                decl = True
+            elif is_i(a) and not is_i(b):
+                decl = [[b]]
+            elif not is_i(a) and is_i(b):
+                decl = [[a]]
+            else:
+                decl = [[a, b]]
+            return decl
+    
+        if "+" in p.expression:
+            l = p.expression.replace(" ", "").split("+")
+            declared = get_decl(l)
+        elif "-" in p.expression:
+            l = p.expression.replace(" ", "").split("-")
+            declared = get_decl(l)
+        elif "*" in p.expression:
+            l = p.expression.replace(" ", "").split("*")
+            declared = get_decl(l)
+        elif "/" in p.expression:
+            l = p.expression.replace(" ", "").split("/")
+            declared = get_decl(l)
+        elif "%" in p.expression:
+            l = p.expression.replace(" ", "").split("%")
+            declared = get_decl(l)
+        else:
+            l = p.expression.replace(" ", "")
+            if is_i(l):
+                declared = True
+            else:
+                declared = [[l]]
+        return " " + p.IDENTIFIER + " := " + p.expression + " ;", {p.IDENTIFIER: declared}
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
@@ -117,7 +156,7 @@ class PreParser(sly.Parser):
         ret_str += "!!!\n"
         ret_str += p.commands1[0]
         ret_str += "\nENDIF"
-        return ret_str, p.commands0[1] + p.commands1[1]
+        return ret_str, sum_var_dicts(p.commands0[1], p.commands1[1])
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
@@ -142,7 +181,37 @@ class PreParser(sly.Parser):
             else:
                 cond = "1 > 0"
         ret_str = "!!!\n"
-        ret_str += "WHILE " + cond + " DO\n^^^ " + " , ".join(p.commands[1]) + "\n"
+
+        res_vars = []
+        new = deepcopy(p.commands[1])
+        while len(new) > 0:
+            removed = []
+            for key in new.keys():
+                if new[key] == True:
+                    res_vars.append(key)
+                    self.var_manager._CompManager__get_variable(key).set_defined(True)
+                    removed.append(key)
+                else:
+                    new_arr = []
+                    for l in new[key]:
+                        res2 = [v for v in l if not self.var_manager._CompManager__get_variable(v).defined]
+                        if len(res2) == 0:
+                            res_vars.append(key)
+                            self.var_manager._CompManager__get_variable(key).set_defined(True)
+                            removed.append(key)
+                            break
+                        new_arr.append(res2)
+                    if key not in removed:
+                        new[key] = new_arr
+            if len(removed) == 0:
+                break
+            for key in removed:
+                del new[key]
+
+        if len(res_vars) == 0:
+            ret_str += "WHILE " + cond + " DO\n"
+        else:
+            ret_str += "WHILE " + cond + " DO\n^^^ " + " , ".join(res_vars) + "\n"
         ret_str += p.commands[0]
         ret_str += "\nENDWHILE"
         return ret_str, p.commands[1]
@@ -157,7 +226,7 @@ class PreParser(sly.Parser):
             else:
                 cond = "1 < 0"
         ret_str = "!!!\n"
-        ret_str += "REPEAT\n^^^ " + " , ".join(p.commands[1]) + "\n"
+        ret_str += "REPEAT\n"#^^^ " + " , ".join(p.commands[1]) + "\n"
         ret_str += p.commands[0]
         ret_str += "\nUNTIL " + cond + " ;"
         return ret_str, p.commands[1]
@@ -168,11 +237,11 @@ class PreParser(sly.Parser):
 
     @_('READ IDENTIFIER SEMICOLON')
     def command(self, p):
-        return "READ " + p.IDENTIFIER + " ;", [p.IDENTIFIER]
+        return "READ " + p.IDENTIFIER + " ;", {p.IDENTIFIER: True}
 
     @_('WRITE value SEMICOLON')
     def command(self, p):
-        return "WRITE " + str(p.value) + " ;", []
+        return "WRITE " + str(p.value) + " ;", {}
 
 
     @_('IDENTIFIER L_BRACKET call_declarations R_BRACKET')
@@ -189,28 +258,32 @@ class PreParser(sly.Parser):
 
     @_('proc_declarations COMMA IDENTIFIER')
     def proc_declarations(self, p):
+        self.var_manager.add_declaration(p.IDENTIFIER, True)
         return p.proc_declarations + " , " + p.IDENTIFIER
 
     @_('IDENTIFIER')
     def proc_declarations(self, p):
+        self.var_manager.add_declaration(p.IDENTIFIER, True)
         return p.IDENTIFIER
 
 
     @_('call_declarations COMMA IDENTIFIER')
     def call_declarations(self, p):
-        return p.call_declarations[0] + " , " + p.IDENTIFIER, p.call_declarations[1] + [p.IDENTIFIER]
+        return p.call_declarations[0] + " , " + p.IDENTIFIER, sum_var_dicts(p.call_declarations[1], {p.IDENTIFIER: True})
 
     @_('IDENTIFIER')
     def call_declarations(self, p):
-        return p.IDENTIFIER, [p.IDENTIFIER]
+        return p.IDENTIFIER, {p.IDENTIFIER: True}
 
 
     @_('declarations COMMA IDENTIFIER')
     def declarations(self, p):
+        self.var_manager.add_declaration(p.IDENTIFIER)
         return p.declarations + " , " + p.IDENTIFIER
 
     @_('IDENTIFIER')
     def declarations(self, p):
+        self.var_manager.add_declaration(p.IDENTIFIER)
         return p.IDENTIFIER
 
 
