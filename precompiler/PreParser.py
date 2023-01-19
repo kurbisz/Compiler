@@ -105,11 +105,11 @@ class PreParser(sly.Parser):
     def command(self, p):
         if type(p.condition) == bool:
             if p.condition:
-                return p.commands0[0]
+                return p.commands0[0], p.commands0[1]
             else:
-                return p.commands1[0]
+                return p.commands1[0], p.commands1[1]
         if p.commands0[0] == p.commands1[0]:
-            return p.commands0[0]
+            return p.commands0[0], p.commands0[1]
         ret_str = "IF " + p.condition + " THEN\n"
         ret_str += "!!!\n"
         ret_str += p.commands0[0]
@@ -123,9 +123,9 @@ class PreParser(sly.Parser):
     def command(self, p):
         if type(p.condition) == bool:
             if p.condition:
-                return p.commands[0]
+                return p.commands[0], p.commands[1]
             else:
-                return ""
+                return "", []
         ret_str = "IF " + p.condition + " THEN\n"
         ret_str += "!!!\n"
         ret_str += p.commands[0]
@@ -135,11 +135,14 @@ class PreParser(sly.Parser):
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
-        if type(p.condition) == bool:
+        cond = p.condition
+        if type(cond) == bool:
             if not p.condition:
-                return ""
+                return "", []
+            else:
+                cond = "1 > 0"
         ret_str = "!!!\n"
-        ret_str += "WHILE " + p.condition + " DO\n^^^ " + " , ".join(p.commands[1]) + "\n"
+        ret_str += "WHILE " + cond + " DO\n^^^ " + " , ".join(p.commands[1]) + "\n"
         ret_str += p.commands[0]
         ret_str += "\nENDWHILE"
         return ret_str, p.commands[1]
@@ -147,13 +150,16 @@ class PreParser(sly.Parser):
 
     @_('REPEAT commands UNTIL condition SEMICOLON')
     def command(self, p):
+        cond = p.condition
         if type(p.condition) == bool:
             if p.condition:
-                return p.commands[0]
+                return p.commands[0], p.commands[1]
+            else:
+                cond = "1 < 0"
         ret_str = "!!!\n"
         ret_str += "REPEAT\n^^^ " + " , ".join(p.commands[1]) + "\n"
         ret_str += p.commands[0]
-        ret_str += "\nUNTIL " + p.condition + " ;"
+        ret_str += "\nUNTIL " + cond + " ;"
         return ret_str, p.commands[1]
 
     @_('proc_head SEMICOLON')
