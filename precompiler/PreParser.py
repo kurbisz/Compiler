@@ -2,6 +2,7 @@ import sly
 from sly.lex import *
 from sly.yacc import *
 
+from CompManager import CompManager
 from CompUtils import *
 from precompiler.PreLexer import PreLexer
 
@@ -13,6 +14,7 @@ class PreParser(sly.Parser):
     def __init__(self) -> None:
         super().__init__()
         self.manager : PreStore = PreStore()
+        self.fake_comp_manager : CompManager = CompManager()
 
 
 
@@ -223,19 +225,46 @@ class PreParser(sly.Parser):
 
     @_('value MUL value')
     def expression(self, p):
-        if not move_to_procedure("*", p.value0, p.value1):
-            self.manager.mul_am += 1
+        a = p.value0
+        b = p.value1
+        if move_to_procedure("*", a, b):
+            if is_i(a) and is_i(b):
+                self.manager.mul_cost += len(self.fake_comp_manager.multiply(int(a), int(b)))
+                self.manager.mul_am += 1
+            elif is_i(a) and not is_i(b):
+                self.fake_comp_manager.add_declaration("b", False)
+                self.fake_comp_manager.set_initialized("b")
+                self.manager.mul_cost += len(self.fake_comp_manager.multiply("b", int(a)))
+                self.manager.mul_am += 1
+                self.fake_comp_manager.variables.clear()
+                self.fake_comp_manager._CompManager__clear_p0()
+            elif not is_i(a) and is_i(b):
+                self.fake_comp_manager.add_declaration("a", False)
+                self.fake_comp_manager.set_initialized("a")
+                self.manager.mul_cost += len(self.fake_comp_manager.multiply("a", int(b)))
+                self.manager.mul_am += 1
+                self.fake_comp_manager.variables.clear()
+                self.fake_comp_manager._CompManager__clear_p0()
+            else:
+                self.fake_comp_manager.add_declaration("a", False)
+                self.fake_comp_manager.set_initialized("a")
+                self.fake_comp_manager.add_declaration("b", False)
+                self.fake_comp_manager.set_initialized("b")
+                self.manager.mul_cost += len(self.fake_comp_manager.multiply("a", "b"))
+                self.manager.mul_am += 1
+                self.fake_comp_manager.variables.clear()
+                self.fake_comp_manager._CompManager__clear_p0()
         return str(p.value0) + " * " + str(p.value1)
 
     @_('value DIV value')
     def expression(self, p):
-        if not move_to_procedure("/", p.value0, p.value1):
+        if move_to_procedure("/", p.value0, p.value1):
             self.manager.div_am += 1
         return str(p.value0) + " / " + str(p.value1)
 
     @_('value MOD value')
     def expression(self, p):
-        if not move_to_procedure("%", p.value0, p.value1):
+        if move_to_procedure("%", p.value0, p.value1):
             self.manager.mod_am += 1
         return str(p.value0) + " % " + str(p.value1)
 

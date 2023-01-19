@@ -112,17 +112,17 @@ class PreManager:
     def move_operations_if_worth(self, s: str, pre_store: PreStore) -> str:
         res_str = []
         operations = {}
-        if pre_store.mul_am >= PreStore.min_am:
+        if pre_store.mul_cost > 36 + pre_store.mul_am * 9 + 15:
             c = "*"
             proc_name = self.__proc_name("multiplication", pre_store.proc_names)
             operations[c] = proc_name
             res_str.append(self.__create_procedure(c, proc_name))
-        if pre_store.div_am >= PreStore.min_am:
+        if pre_store.div_am > 2:
             c = "/"
             proc_name = self.__proc_name("division", pre_store.proc_names)
             operations[c] = proc_name
             res_str.append(self.__create_procedure(c, proc_name))
-        if pre_store.mod_am >= PreStore.min_am:
+        if pre_store.mod_am > 2:
             c = "%"
             proc_name = self.__proc_name("modulo", pre_store.proc_names)
             operations[c] = proc_name
@@ -135,7 +135,7 @@ class PreManager:
                     result = spl[1]
                     first = spl[3]
                     second = spl[5]
-                    if move_to_procedure(operation, first, second):
+                    if not move_to_procedure(operation, first, second):
                         res_str.append(line)
                     else:
                         res_str.append(operations[operation] + " ( " + first + " , " + second + " , " + result + " ) ;")

@@ -210,14 +210,14 @@ class CompParser(sly.Parser):
         self.manager.add_declaration(p.IDENTIFIER, True)
 
 
-    @_('call_declarations COMMA IDENTIFIER')
+    @_('call_declarations COMMA value')
     def call_declarations(self, p):
-        p.call_declarations.append(p.IDENTIFIER)
+        p.call_declarations.append(p.value)
         return p.call_declarations
 
-    @_('IDENTIFIER')
+    @_('value')
     def call_declarations(self, p):
-        return [p.IDENTIFIER]
+        return [p.value]
 
 
     @_('declarations COMMA IDENTIFIER')

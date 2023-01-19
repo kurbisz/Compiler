@@ -143,6 +143,11 @@ class CompManager:
         self.__clear_p0()
         for variable in proc.arguments:
             if variable.is_reference:
+                if type(declarations[i]) == int:
+                    cmds.extend(self.set(declarations[i]))
+                    mem, store_cmds = self.store_act()
+                    cmds.extend(store_cmds)
+                    declarations[i] = self.add_fake_declaration(mem)
                 dec = self.__get_variable(declarations[i])
                 self.set_initialized(dec.name)
                 if dec.is_reference:

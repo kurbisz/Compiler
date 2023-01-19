@@ -66,6 +66,7 @@ class PreStore:
         self.mul_am = 0
         self.div_am = 0
         self.mod_am = 0
+        self.mul_cost = 0
         self.proc_names : dict[str, PreProcedure] = {}
         self.numbers : list[int] = []
 
@@ -100,7 +101,33 @@ def isPowerOfTwo(n):
     return True, i
 
 def move_to_procedure(c, a, b):
-    return (type(a) == int or a.isnumeric()) or (type(b) == int or b.isnumeric())
+    if c == "*":
+        if is_i(a) and is_i(b):
+            return not int(a) * int(b) <= maxLongLong
+        elif is_i(a) and not is_i(b):
+            return not isPowerOfTwo(int(a))
+        elif not is_i(a) and is_i(b):
+            return not isPowerOfTwo(int(b))
+        return True
+    elif c == "/":
+        if is_i(a) and is_i(b):
+            return False
+        elif is_i(a) and not is_i(b):
+            return int(a) not in [0, 1]
+        elif not is_i(a) and is_i(b):
+            return not isPowerOfTwo(int(b))
+        return True
+    # elif c == "%"
+    if is_i(a) and is_i(b):
+        return False
+    elif is_i(a) and not is_i(b):
+        return int(a) not in [0, 1]
+    elif not is_i(a) and is_i(b):
+        return int(b) not in [0, 1, 2]
+    return True
+
+def is_i(a):
+    return (type(a) == int or a.isnumeric())
 
 
 maxLongLong = 9223372036854775807
