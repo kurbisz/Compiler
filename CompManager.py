@@ -986,7 +986,8 @@ class CompManager:
     def initialize_numbers(self, numbers : list[int]):
         cmds = []
         for number in numbers:
-            cmds.extend(self.__init_static_var(number))
+            if number != 0:
+                cmds.extend(self.__init_static_var(number))
         self.initialize_numbers_cmds = cmds
 
     def init_var(self, var: str):

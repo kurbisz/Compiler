@@ -60,7 +60,7 @@ class Operation:
 
 class PreStore:
 
-    min_am = 5
+    min_am = 3
 
     def __init__(self) -> None:
         self.mul_am = 0
