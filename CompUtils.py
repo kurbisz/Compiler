@@ -105,9 +105,9 @@ def move_to_procedure(c, a, b):
         if is_i(a) and is_i(b):
             return not int(a) * int(b) <= maxLongLong
         elif is_i(a) and not is_i(b):
-            return not isPowerOfTwo(int(a))
+            return int(a) != 0 and not isPowerOfTwo(int(a))
         elif not is_i(a) and is_i(b):
-            return not isPowerOfTwo(int(b))
+            return int(b) != 0 and not isPowerOfTwo(int(b))
         return True
     elif c == "/":
         if is_i(a) and is_i(b):
@@ -115,7 +115,7 @@ def move_to_procedure(c, a, b):
         elif is_i(a) and not is_i(b):
             return int(a) not in [0, 1]
         elif not is_i(a) and is_i(b):
-            return not isPowerOfTwo(int(b))
+            return int(b) != 0 and not isPowerOfTwo(int(b))
         return True
     # elif c == "%"
     if is_i(a) and is_i(b):

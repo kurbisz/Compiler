@@ -246,7 +246,10 @@ class PreParser(sly.Parser):
 
     @_('IDENTIFIER L_BRACKET call_declarations R_BRACKET')
     def proc_head(self, p):
-        self.manager.proc_names[p.IDENTIFIER].used_times += 1
+        try:
+            self.manager.proc_names[p.IDENTIFIER].used_times += 1
+        except KeyError:
+            pass
         return p.IDENTIFIER + " ( " + p.call_declarations[0] + " )", p.call_declarations[1]
 
 

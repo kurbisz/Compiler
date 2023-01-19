@@ -27,10 +27,12 @@ class PreManager:
                 for repl in act.keys():
                     l[i] = el.replace(" " + repl + " ", " " + str(act[repl]) + " ")
             if ":=" in el:
+                spl = l[i].split(":=")
                 for repl in act.keys():
-                    l[i] = l[i].replace(" " + repl + " ", " " + str(act[repl]) + " ")
-                spl = l[i].replace(" ", "").replace(";", "").split(":=")
-                values = spl[1]
+                    spl[1] = spl[1].replace(" " + repl + " ", " " + str(act[repl]) + " ")
+                l[i] = spl[0] + ":=" + spl[1]
+                spl[0] = spl[0].replace(" ", "").replace(";", "")
+                values = spl[1].replace(" ", "").replace(";", "")
                 try:
                     if "+" in values:
                         values = values.split("+")
