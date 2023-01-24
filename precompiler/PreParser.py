@@ -435,6 +435,6 @@ class PreParser(sly.Parser):
 
 
     def error(self, token):
-        print(f"Blad {(token if token else '')}")
+        print(f"Error in line {token.lineno}!")
         return None
     

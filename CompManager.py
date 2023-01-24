@@ -977,16 +977,16 @@ class CompManager:
         if type(vars) == str:
             var = self.__get_variable(vars)
             if not var.defined:
-                raise VariableNotInitialized(f"Variabled with name {vars} was not initialized.")
+                raise VariableNotInitialized(f"Variable with name {vars} was not initialized.")
         elif type(vars) == Variable:
             if not vars.defined:
-                raise VariableNotInitialized(f"Variabled with name {vars.name} was not initialized.")
+                raise VariableNotInitialized(f"Variable with name {vars.name} was not initialized.")
         else:
             for var in vars:
                 if type(var) == str:
                     var = self.__get_variable(var)
                 if not var.defined:
-                    raise VariableNotInitialized(f"Variabled with name {var.name} was not initialized.")
+                    raise VariableNotInitialized(f"Variable with name {var.name} was not initialized.")
 
     def initialize_numbers(self, numbers : list[int]):
         cmds = []
