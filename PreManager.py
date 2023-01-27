@@ -154,10 +154,9 @@ class PreManager:
 
         for i in range(len(l)):
             line = l[i]
-            if "PROGRAM IS" in line:
+            if "PROGRAM IS" in line or "PROCEDURE" in line:
                 if "VAR" in l[i+1]:
-                    vars = l[i+1][4:].split(" , ")
-                break
+                    vars.extend(l[i+1][4:].split(" , "))
 
         to_remove = []
 
