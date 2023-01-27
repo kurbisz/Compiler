@@ -211,7 +211,7 @@ class PreParser(sly.Parser):
         if len(res_vars) == 0:
             ret_str += "WHILE " + cond + " DO\n"
         else:
-            ret_str += "WHILE " + cond + " DO\n^^^ " + " , ".join(res_vars) + "\n"
+            ret_str += "WHILE " + cond + " DO\n^^^ " + " , ".join(res_vars) + " \n"
         ret_str += p.commands[0]
         ret_str += "\nENDWHILE"
         return ret_str, p.commands[1]
@@ -226,7 +226,38 @@ class PreParser(sly.Parser):
             else:
                 cond = "1 < 0"
         ret_str = "!!!\n"
-        ret_str += "REPEAT\n"#^^^ " + " , ".join(p.commands[1]) + "\n"
+
+        res_vars = []
+        new = deepcopy(p.commands[1])
+        while len(new) > 0:
+            removed = []
+            for key in new.keys():
+                if new[key] == True:
+                    res_vars.append(key)
+                    self.var_manager._CompManager__get_variable(key).set_defined(True)
+                    removed.append(key)
+                else:
+                    new_arr = []
+                    for l in new[key]:
+                        res2 = [v for v in l if not self.var_manager._CompManager__get_variable(v).defined]
+                        if len(res2) == 0:
+                            res_vars.append(key)
+                            self.var_manager._CompManager__get_variable(key).set_defined(True)
+                            removed.append(key)
+                            break
+                        new_arr.append(res2)
+                    if key not in removed:
+                        new[key] = new_arr
+            if len(removed) == 0:
+                break
+            for key in removed:
+                del new[key]
+
+        if len(res_vars) == 0:
+            ret_str += "REPEAT\n"
+        else:
+            ret_str += "REPEAT\n^^^ " + " , ".join(res_vars) + " \n"
+
         ret_str += p.commands[0]
         ret_str += "\nUNTIL " + cond + " ;"
         return ret_str, p.commands[1]
