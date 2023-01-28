@@ -1,12 +1,17 @@
 # Compiler
 
+Author
+------
+Krzysztof Urbisz
+261730
+
 Requirements
 ------------
- * [Python][Python] 3.10.4
+ * [Python][Python] 3.10.6
  * [Pip][Pip] 22.0.4
  * [Sly][Sly] 0.5
 
-[Python]: https://www.python.org/downloads/release/python-3104/
+[Python]: https://www.python.org/downloads/release/python-3106/
 [Pip]: https://pypi.org/project/pip/
 [Sly]: https://pypi.org/project/sly/
 
