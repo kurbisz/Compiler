@@ -140,7 +140,7 @@ class CompManager:
         cmds = []
         proc : Procedure = self.__get_procedure(proc_name)
         i = 0
-        self.__clear_p0()
+        self.clear_cache()
         for variable in proc.arguments:
             if variable.is_reference:
                 if type(declarations[i]) == int:
@@ -165,7 +165,7 @@ class CompManager:
         cmds.append(Command("SETI"))
         self.__clear_p0()
         cmds.extend(call_cmds)
-        self.__clear_p0()
+        self.clear_cache()
         return cmds
 
 

@@ -25,6 +25,7 @@ class PostManager:
                 if "JUMP" in cmd:
                     index = get_cmd_index(cmd)
                     start_jumps.append(index)
+                    start_jumps.append(i+1)
                 
                 if "JZERO" in cmd or "JPOS" in cmd:
                     index = get_cmd_index(cmd)
